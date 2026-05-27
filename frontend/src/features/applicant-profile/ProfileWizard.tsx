@@ -837,9 +837,13 @@ export function ProfileWizard() {
 
   return (
     <div className="space-y-6">
-      {step === 0 ? (
-        <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
-          <p className="text-sm font-medium text-foreground">{describeOnceLine}</p>
+      {!allComplete ? (
+        <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-4">
+          <p className="text-sm font-medium text-foreground">
+            Take your time — the more detail you share, the better we can match roles and tailor
+            applications that sound like you.
+          </p>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{describeOnceLine}</p>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{truthPledge}</p>
         </div>
       ) : null}

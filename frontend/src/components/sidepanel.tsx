@@ -28,7 +28,7 @@ const FULL_NAV = [
   { to: '/', label: 'Overview', icon: LayoutDashboard, exact: true, requiresProfile: true },
   { to: '/applications', label: 'Applications', icon: Briefcase, exact: false, requiresProfile: true },
   { to: '/profile', label: 'Profile', icon: UserCircle, exact: false, requiresProfile: false },
-  { to: '/settings', label: 'Settings', icon: Settings, exact: false, requiresProfile: false },
+  { to: '/settings', label: 'Settings', icon: Settings, exact: false, requiresProfile: true },
 ] as const
 
 function NavContent({ onNavigate }: { onNavigate?: () => void }) {

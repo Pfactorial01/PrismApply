@@ -107,6 +107,12 @@ const profileRoute = createRoute({
 const settingsRoute = createRoute({
   getParentRoute: () => authenticatedLayoutRoute,
   path: '/settings',
+  beforeLoad: async ({ context }) => {
+    const profile = await ensureProfile(context.queryClient)
+    if (!profile.resumePlainText.trim()) {
+      throw redirect({ to: '/profile' })
+    }
+  },
   component: SettingsPage,
 })
 
