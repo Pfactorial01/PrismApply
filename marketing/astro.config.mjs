@@ -8,6 +8,7 @@ const site = process.env.PUBLIC_SITE_URL ?? 'https://prismapply.com'
 export default defineConfig({
   site,
   output: 'static',
+  trailingSlash: 'always',
   integrations: [sitemap()],
   vite: {
     plugins: [tailwindcss()],

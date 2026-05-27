@@ -4,6 +4,9 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
+    absolute_redirect off;
+    port_in_redirect off;
+
     gzip on;
     gzip_types text/css application/javascript application/json image/svg+xml;
 
