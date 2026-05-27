@@ -14,5 +14,5 @@ FROM gcr.io/distroless/static-debian12:nonroot
 WORKDIR /
 COPY --from=builder /out/prismapply-api /prismapply-api
 USER nonroot:nonroot
-EXPOSE 9001
+EXPOSE 8080
 ENTRYPOINT ["/prismapply-api"]

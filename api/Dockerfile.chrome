@@ -1,0 +1,28 @@
+# syntax=docker/dockerfile:1
+# Chrome-backed workers: jobworker (tailor PDFs) and discover (scrape fallback).
+# Override CMD_PATH at build time for discover vs jobworker.
+
+ARG CMD_PATH=./cmd/jobworker
+
+FROM golang:1.22-bookworm AS builder
+WORKDIR /src
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+ARG CMD_PATH
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/prismapply-worker ${CMD_PATH}
+
+FROM debian:bookworm-slim
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        chromium \
+        ca-certificates \
+        fonts-liberation \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV CHROME_PATH=/usr/bin/chromium
+
+COPY --from=builder /out/prismapply-worker /prismapply-worker
+ENTRYPOINT ["/prismapply-worker"]

@@ -1,0 +1,9 @@
+# Copy to Railway service settings → Config file path: deploy/railway/embed-worker.toml
+# Service root directory: api
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.embed-worker"
+
+[deploy]
+restartPolicyType = "ON_FAILURE"

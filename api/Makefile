@@ -1,4 +1,4 @@
-.PHONY: build build-worker build-jobworker build-discover run run-worker run-jobworker run-discover test docker-build docker-up install seed-profile regen-seed-json
+.PHONY: build build-worker build-jobworker build-discover run run-worker run-jobworker run-discover test docker-build docker-build-embed-worker docker-build-jobworker docker-build-discover docker-up install seed-profile regen-seed-json
 
 BINARY := bin/prismapply-api
 WORKER_BINARY := bin/prismapply-embed-worker
@@ -56,6 +56,15 @@ test:
 
 docker-build:
 	docker build -t prismapply-api:local .
+
+docker-build-embed-worker:
+	docker build -f Dockerfile.embed-worker -t prismapply-embed-worker:local .
+
+docker-build-jobworker:
+	docker build -f Dockerfile.chrome -t prismapply-jobworker:local .
+
+docker-build-discover:
+	docker build -f Dockerfile.chrome --build-arg CMD_PATH=./cmd/discover -t prismapply-discover:local .
 
 docker-up:
 	docker compose up --build api

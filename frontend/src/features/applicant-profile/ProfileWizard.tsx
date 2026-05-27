@@ -47,7 +47,6 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Switch } from '@/components/ui/switch'
 import {
   Select,
   SelectContent,
@@ -355,7 +354,7 @@ function StepBasics({
         <TextField label="Portfolio / personal site" type="url" optional value={draft.portfolioUrl} onChange={(e) => patch('portfolioUrl', e.target.value)} />
         <TextField label="GitHub (or main code host)" type="url" optional value={draft.githubUrl} onChange={(e) => patch('githubUrl', e.target.value)} />
       </div>
-      <LongField label="Other links worth citing" optional minHeightClass="min-h-[80px]" value={draft.otherLinks} onChange={(e) => patch('otherLinks', e.target.value)} />
+      <LongField label="Other links worth citing" optional className="min-h-[80px]" value={draft.otherLinks} onChange={(e) => patch('otherLinks', e.target.value)} />
     </div>
   )
 }
@@ -660,11 +659,9 @@ function StepGoals({
 function StepWorkStyle({
   draft,
   patch,
-  setDraft,
 }: {
   draft: ApplicantProfileDraft
   patch: <K extends keyof ApplicantProfileDraft>(key: K, value: ApplicantProfileDraft[K]) => void
-  setDraft: React.Dispatch<React.SetStateAction<ApplicantProfileDraft | null>>
 }) {
   return (
     <div className="space-y-5">
@@ -882,7 +879,7 @@ export function ProfileWizard() {
         {step === 5 && <StepProjects draft={draft} updateProject={updateProject} addProject={addProject} removeProject={removeProject} />}
         {step === 6 && <StepStories draft={draft} patch={patch} />}
         {step === 7 && <StepGoals draft={draft} patch={patch} setDraft={setDraft} />}
-        {step === 8 && <StepWorkStyle draft={draft} patch={patch} setDraft={setDraft} />}
+        {step === 8 && <StepWorkStyle draft={draft} patch={patch} />}
       </div>
 
       <div className="flex items-center justify-between gap-3">

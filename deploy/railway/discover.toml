@@ -1,0 +1,14 @@
+# Copy to Railway service settings → Config file path: deploy/railway/discover.toml
+# Service root directory: api
+# Enable cron in Railway: Settings → Cron Schedule → 0 */6 * * * (UTC)
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.chrome"
+
+[build.buildArgs]
+CMD_PATH = "./cmd/discover"
+
+[deploy]
+restartPolicyType = "NEVER"
+cronSchedule = "0 */6 * * *"

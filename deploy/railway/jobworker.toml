@@ -1,0 +1,10 @@
+# Copy to Railway service settings → Config file path: deploy/railway/jobworker.toml
+# Service root directory: api
+# Recommend ≥1 GB RAM (Chrome).
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.chrome"
+
+[deploy]
+restartPolicyType = "ON_FAILURE"
