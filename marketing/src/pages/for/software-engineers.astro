@@ -1,0 +1,77 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro'
+import PageHero from '../../components/PageHero.astro'
+import SignupCta from '../../components/SignupCta.astro'
+import { site } from '../../config'
+---
+
+<PageLayout
+  title="For software engineers"
+  description="Software engineer job search automation that tailors each application from your real profile — not generic auto-apply spam."
+>
+  <PageHero
+    eyebrow="For software engineers"
+    title="SWE job search tool built for quality, not spray-and-pray"
+    description="Remote, backend, full-stack, platform — PrismApply discovers tech roles on major ATS platforms and prepares tailored packages for each strong match."
+  />
+
+  <section class="site-container py-14 sm:py-16">
+    <div class="max-w-3xl">
+      <h2 class="text-2xl font-semibold text-foreground">Why SWEs need a different approach</h2>
+      <p class="mt-4 text-muted-foreground leading-relaxed">
+        Software engineering hiring is noisy. Job boards surface hundreds of "software engineer" listings, but half are mis-leveled, wrong stack, or onsite-only when you need remote. Auto-appliers make the noise worse by sending the same resume everywhere.
+      </p>
+      <p class="mt-4 text-muted-foreground leading-relaxed">
+        PrismApply filters before it tailors: work arrangement, seniority, visa needs, and dealbreakers (defense, crypto-first, heavy on-call) are hard gates. Semantic matching then finds roles aligned with your actual projects and stack — not keyword stuffing.
+      </p>
+    </div>
+
+    <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="rounded-xl border border-border bg-card p-6">
+        <h3 class="font-semibold text-foreground">Backend &amp; platform</h3>
+        <p class="mt-2 text-sm text-muted-foreground leading-relaxed">
+          Emphasize distributed systems, APIs, and reliability work from your profile when the JD calls for it.
+        </p>
+      </div>
+      <div class="rounded-xl border border-border bg-card p-6">
+        <h3 class="font-semibold text-foreground">Full-stack &amp; product</h3>
+        <p class="mt-2 text-sm text-muted-foreground leading-relaxed">
+          Surface frontend and product-engineering wins when the role spans UI and backend ownership.
+        </p>
+      </div>
+      <div class="rounded-xl border border-border bg-card p-6">
+        <h3 class="font-semibold text-foreground">Remote-first search</h3>
+        <p class="mt-2 text-sm text-muted-foreground leading-relaxed">
+          Preference gates exclude onsite-only roles when you require remote or hybrid arrangements.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="border-y border-border bg-muted/20 py-14 sm:py-16">
+    <div class="site-container max-w-3xl">
+      <h2 class="text-2xl font-semibold text-foreground">What a tailored SWE package includes</h2>
+      <ul class="mt-6 space-y-3 text-muted-foreground">
+        <li class="flex gap-3"><span class="text-primary">→</span> Resume reframed for the role's stack and scope (same facts, better emphasis)</li>
+        <li class="flex gap-3"><span class="text-primary">→</span> Cover letter connecting your projects to the company's stated needs</li>
+        <li class="flex gap-3"><span class="text-primary">→</span> Answers for Greenhouse/Lever/Ashby form fields (GitHub, work auth, etc.)</li>
+        <li class="flex gap-3"><span class="text-primary">→</span> Match tier and insights so you know why this role surfaced</li>
+      </ul>
+      <p class="mt-6 text-sm text-muted-foreground">{site.truthPledge}</p>
+    </div>
+  </section>
+
+  <section class="site-container py-14">
+    <p class="text-muted-foreground">
+      More: <a href="/how-it-works" class="text-primary hover:underline">How it works</a>,
+      <a href="/blog/software-engineer-job-search-playbook" class="text-primary hover:underline">SWE job search playbook</a>,
+      <a href="/vs/auto-apply" class="text-primary hover:underline">Why we are not an auto-applier</a>.
+    </p>
+  </section>
+
+  <SignupCta
+    location="for-swe"
+    heading="Build your SWE profile once"
+    body="Free during beta. Tell your story once — we handle discovery and tailoring for matching tech roles."
+  />
+</PageLayout>

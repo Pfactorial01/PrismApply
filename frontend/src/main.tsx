@@ -5,6 +5,9 @@ import { RouterProvider } from '@tanstack/react-router'
 import './index.css'
 import { getRouter } from './router'
 import { ThemeProvider } from './lib/theme'
+import { initAnalytics } from './lib/analytics'
+
+initAnalytics()
 
 const queryClient = new QueryClient({
   defaultOptions: {

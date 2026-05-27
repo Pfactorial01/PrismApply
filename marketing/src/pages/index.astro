@@ -1,5 +1,4 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro'
 import Header from '../components/Header.astro'
 import Footer from '../components/Footer.astro'
 import Hero from '../components/Hero.astro'
@@ -7,10 +6,11 @@ import Problem from '../components/Problem.astro'
 import HowItWorks from '../components/HowItWorks.astro'
 import Features from '../components/Features.astro'
 import Cta from '../components/Cta.astro'
+import BaseLayout from '../layouts/BaseLayout.astro'
 import { site } from '../config'
 ---
 
-<BaseLayout description={site.description}>
+<BaseLayout description={site.description} includeSoftwareAppSchema={true}>
   <Header />
   <main>
     <Hero />

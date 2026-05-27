@@ -188,13 +188,23 @@ Set `PORT=8080` on **api** (Railway injects `PORT`; the Go API reads it).
 
 - Pattern A: no `VITE_API_BASE_URL` (same-origin via gateway)
 - Pattern B: `VITE_API_BASE_URL=https://api.prismapply.com`
+- PostHog (optional, baked at build):
+
+```
+VITE_POSTHOG_KEY=phc_...
+VITE_POSTHOG_HOST=https://us.i.posthog.com
+```
 
 **marketing** (root `marketing/`):
 
 ```
 PUBLIC_SITE_URL=https://prismapply.com
 PUBLIC_APP_URL=https://app.prismapply.com
+PUBLIC_POSTHOG_KEY=phc_...
+PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 ```
+
+Use the **same** PostHog project key on both services. Redeploy after changing analytics env vars.
 
 Disable public networking for pattern A.
 

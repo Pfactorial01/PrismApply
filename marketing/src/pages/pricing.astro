@@ -1,0 +1,41 @@
+---
+import PageLayout from '../layouts/PageLayout.astro'
+import PageHero from '../components/PageHero.astro'
+import SignupLink from '../components/SignupLink.astro'
+---
+
+<PageLayout
+  title="Pricing"
+  description="PrismApply job application tool pricing — free during beta. Build your profile, get matches, and review tailored packages at no cost."
+>
+  <PageHero
+    eyebrow="Pricing"
+    title="Job application tool pricing — free during beta"
+    description="No credit card required. Early users help shape matching and tailoring while getting full access to tailored application packages."
+    align="center"
+  />
+
+  <section class="site-container pb-16">
+    <div class="mx-auto max-w-lg rounded-2xl border-2 border-primary/30 bg-card p-8 text-center shadow-sm">
+      <p class="text-sm font-medium uppercase tracking-widest text-primary">Beta</p>
+      <p class="mt-4 text-5xl font-semibold tracking-tight text-foreground">$0</p>
+      <p class="mt-2 text-muted-foreground">Free while we refine the product with early users</p>
+      <ul class="mt-8 space-y-3 text-left text-sm text-muted-foreground">
+        <li class="flex gap-3"><span class="text-primary">✓</span> Full profile wizard &amp; resume upload</li>
+        <li class="flex gap-3"><span class="text-primary">✓</span> Semantic job matching</li>
+        <li class="flex gap-3"><span class="text-primary">✓</span> Tailored resume &amp; cover letter PDFs</li>
+        <li class="flex gap-3"><span class="text-primary">✓</span> Form answer drafts for real ATS fields</li>
+        <li class="flex gap-3"><span class="text-primary">✓</span> Dashboard review — you submit manually</li>
+      </ul>
+      <SignupLink
+        location="pricing"
+        class="mt-8 inline-flex w-full items-center justify-center rounded-md bg-primary px-6 py-3 text-base font-medium text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+      >
+        Start free — no card required
+      </SignupLink>
+      <p class="mt-4 text-xs text-muted-foreground">
+        Paid plans may be introduced later. Beta users will receive advance notice before any pricing changes.
+      </p>
+    </div>
+  </section>
+</PageLayout>

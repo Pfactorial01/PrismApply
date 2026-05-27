@@ -1,0 +1,29 @@
+---
+import { appPath } from '../config'
+
+interface Props {
+  href?: string
+  location: string
+  class?: string
+  [key: string]: unknown
+}
+
+const {
+  href: hrefProp,
+  location,
+  class: className = '',
+  ...rest
+} = Astro.props
+
+const href = hrefProp ?? `${appPath('/signup')}?ref=${encodeURIComponent(location)}`
+---
+
+<a
+  href={href}
+  class={className}
+  data-ph-capture="Signup Click"
+  data-ph-location={location}
+  {...rest}
+>
+  <slot />
+</a>

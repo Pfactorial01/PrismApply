@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useMemo } from 'react'
+import { trackOnce } from '@/lib/analytics'
 import { Briefcase, Send, ChevronRight, FileText, Inbox, TrendingUp, Target } from 'lucide-react'
 import { authMeQueryKey, fetchAuthMe } from '@/lib/auth'
 import { getProfileFirstName } from '@/lib/displayName'
@@ -43,6 +44,12 @@ export function OverviewPage() {
   const unsentApps = totalApps - sentApps
   const recentApps = useMemo(() => (apps ?? []).slice(0, 5), [apps])
   const firstName = getProfileFirstName(profile)
+
+  useEffect(() => {
+    if (apps && apps.length > 0) {
+      trackOnce('first-match', 'First Match', { count: String(apps.length) })
+    }
+  }, [apps])
 
   if (!profile || !profile.resumePlainText.trim()) return null
 

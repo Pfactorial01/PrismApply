@@ -1,5 +1,6 @@
 import { Link, useNavigate, useRouter, useRouterState } from '@tanstack/react-router'
 import { useState } from 'react'
+import { signupSourceFromUrl, trackEvent, identifyUser } from '@/lib/analytics'
 import { useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { AuthPageLayout } from '@/components/auth/AuthPageLayout'
@@ -39,6 +40,8 @@ export function SignupPage() {
     setPending(true)
     try {
       const user = await signupRequest(email, password)
+      identifyUser(user.id, { email: user.email })
+      trackEvent('Signup Complete', { source: signupSourceFromUrl() })
       queryClient.removeQueries({ queryKey: applicantProfileQueryKey })
       queryClient.setQueryData(authMeQueryKey, user)
       await router.invalidate()

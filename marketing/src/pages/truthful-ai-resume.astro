@@ -1,0 +1,88 @@
+---
+import PageLayout from '../layouts/PageLayout.astro'
+import PageHero from '../components/PageHero.astro'
+import SignupCta from '../components/SignupCta.astro'
+import { site } from '../config'
+---
+
+<PageLayout
+  title="Truthful AI resume"
+  description="AI resume builder that does not lie: a framework for honest job applications without invented employers, dates, or metrics."
+>
+  <PageHero
+    eyebrow="Truth pledge"
+    title="AI resume without lying — a framework that actually works"
+    description="The fastest way to fail a background check is a fabricated bullet point. Here is how PrismApply tailors aggressively while staying factual."
+  />
+
+  <section class="site-container py-14 sm:py-16">
+    <div class="max-w-3xl">
+      <h2 class="text-2xl font-semibold text-foreground">The honesty problem with AI resumes</h2>
+      <p class="mt-4 text-muted-foreground leading-relaxed">
+        Most AI resume tools optimize for impressive-sounding output. Ask ChatGPT to "improve" your resume for a senior backend role and it may invent microservices you never built or inflate team sizes you never led. That is not tailoring — it is fraud with good grammar.
+      </p>
+      <p class="mt-4 text-muted-foreground leading-relaxed">
+        Recruiters and engineering managers are increasingly skilled at spotting AI filler. Technical interviews expose gaps instantly. The fix is not "write more human-sounding lies." It is constraining generation to evidence you actually provided.
+      </p>
+    </div>
+  </section>
+
+  <section class="border-y border-border bg-muted/20 py-14 sm:py-16">
+    <div class="site-container max-w-3xl">
+      <h2 class="text-2xl font-semibold text-foreground">The PrismApply truth pledge</h2>
+      <blockquote class="mt-6 border-l-4 border-primary pl-4 text-lg text-foreground/90">
+        {site.truthPledge}
+      </blockquote>
+      <div class="mt-10 grid gap-6 sm:grid-cols-2">
+        <div class="rounded-xl border border-border bg-card p-5">
+          <h3 class="font-semibold text-foreground">What we do</h3>
+          <ul class="mt-3 space-y-2 text-sm text-muted-foreground">
+            <li>Reframe bullets for relevance</li>
+            <li>Emphasize matching projects and skills</li>
+            <li>Write cover letters from cited evidence</li>
+            <li>Answer forms using your profile data</li>
+          </ul>
+        </div>
+        <div class="rounded-xl border border-border bg-card p-5">
+          <h3 class="font-semibold text-foreground">What we never do</h3>
+          <ul class="mt-3 space-y-2 text-sm text-muted-foreground">
+            <li>Invent employers or job titles</li>
+            <li>Change employment dates</li>
+            <li>Fabricate metrics or degrees</li>
+            <li>Claim skills you did not list</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="site-container py-14 sm:py-16">
+    <div class="max-w-3xl">
+      <h2 class="text-2xl font-semibold text-foreground">A 4-point framework for honest AI applications</h2>
+      <ol class="mt-8 space-y-6">
+        <li class="rounded-xl border border-border p-5">
+          <h3 class="font-semibold text-foreground">1. Single source of truth</h3>
+          <p class="mt-2 text-muted-foreground">Store your full career story once — resume, projects, stories, preferences. Every package pulls from this vault, not from model imagination.</p>
+        </li>
+        <li class="rounded-xl border border-border p-5">
+          <h3 class="font-semibold text-foreground">2. Evidence maps</h3>
+          <p class="mt-2 text-muted-foreground">Before writing, map job requirements to specific profile fields. Unmapped requirements become gaps to address honestly — or signals to skip the role.</p>
+        </li>
+        <li class="rounded-xl border border-border p-5">
+          <h3 class="font-semibold text-foreground">3. Human review</h3>
+          <p class="mt-2 text-muted-foreground">AI drafts; you approve. Packages stay in your dashboard until you copy, download, and submit.</p>
+        </li>
+        <li class="rounded-xl border border-border p-5">
+          <h3 class="font-semibold text-foreground">4. Citation metadata</h3>
+          <p class="mt-2 text-muted-foreground">Tailoring pipelines track which profile fields informed each section — making it easier to verify before you send.</p>
+        </li>
+      </ol>
+      <p class="mt-8 text-muted-foreground">
+        Read more: <a href="/faq" class="text-primary hover:underline">FAQ on AI honesty</a>,
+        <a href="/blog/can-ai-write-your-resume-honestly" class="text-primary hover:underline">Can AI write your resume honestly?</a>
+      </p>
+    </div>
+  </section>
+
+  <SignupCta location="truthful-ai-resume" />
+</PageLayout>

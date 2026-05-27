@@ -1,14 +1,73 @@
 ---
 import { site } from '../config'
+
 const year = new Date().getFullYear()
+
+const productLinks = [
+  { label: 'How it works', href: '/how-it-works' },
+  { label: 'Pricing', href: '/pricing' },
+  { label: 'FAQ', href: '/faq' },
+  { label: 'Blog', href: '/blog' },
+]
+
+const topicLinks = [
+  { label: 'For software engineers', href: '/for/software-engineers' },
+  { label: 'Truthful AI resume', href: '/truthful-ai-resume' },
+  { label: 'Auto-apply vs manual', href: '/vs/auto-apply' },
+]
+
+const legalLinks = [
+  { label: 'Privacy', href: '/privacy' },
+  { label: 'Terms', href: '/terms' },
+]
 ---
 
 <footer class="mt-auto border-t border-border bg-muted/40">
-  <div class="site-container flex flex-col gap-6 py-10 sm:flex-row sm:items-center sm:justify-between">
-    <div>
+  <div class="site-container grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="sm:col-span-2 lg:col-span-1">
       <p class="font-semibold text-foreground">{site.name}</p>
-      <p class="mt-1 max-w-sm text-sm text-muted-foreground">{site.tagline}</p>
+      <p class="mt-2 max-w-xs text-sm text-muted-foreground">{site.tagline}</p>
+      <p class="mt-3 max-w-xs text-sm text-muted-foreground">{site.truthPledge}</p>
     </div>
-    <p class="text-sm text-muted-foreground">© {year} {site.name}. All rights reserved.</p>
+
+    <div>
+      <p class="text-sm font-semibold text-foreground">Product</p>
+      <ul class="mt-3 space-y-2 text-sm text-muted-foreground">
+        {productLinks.map((link) => (
+          <li>
+            <a href={link.href} class="transition-colors hover:text-foreground">{link.label}</a>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div>
+      <p class="text-sm font-semibold text-foreground">Topics</p>
+      <ul class="mt-3 space-y-2 text-sm text-muted-foreground">
+        {topicLinks.map((link) => (
+          <li>
+            <a href={link.href} class="transition-colors hover:text-foreground">{link.label}</a>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div>
+      <p class="text-sm font-semibold text-foreground">Legal</p>
+      <ul class="mt-3 space-y-2 text-sm text-muted-foreground">
+        {legalLinks.map((link) => (
+          <li>
+            <a href={link.href} class="transition-colors hover:text-foreground">{link.label}</a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+
+  <div class="border-t border-border">
+    <div class="site-container flex flex-col gap-2 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+      <p>© {year} {site.name}. All rights reserved.</p>
+      <p>Tailored applications, always grounded in your profile.</p>
+    </div>
   </div>
 </footer>

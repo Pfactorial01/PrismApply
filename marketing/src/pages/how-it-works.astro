@@ -1,0 +1,104 @@
+---
+import PageLayout from '../layouts/PageLayout.astro'
+import PageHero from '../components/PageHero.astro'
+import SignupCta from '../components/SignupCta.astro'
+import { site } from '../config'
+---
+
+<PageLayout
+  title="How it works"
+  description="Learn how to tailor job applications at scale: one profile, semantic matching, and truthful packages for Lever, Greenhouse, and Ashby roles."
+>
+  <PageHero
+    eyebrow="How it works"
+    title="How to tailor applications at scale without burning out"
+    description="One honest profile powers every package. PrismApply handles discovery, matching, and tailoring — you stay in control of what gets sent."
+  />
+
+  <section class="site-container py-14 sm:py-16">
+    <div class="grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-start lg:gap-16">
+      <div>
+        <h2 class="text-2xl font-semibold text-foreground">The problem with one-size-fits-all applying</h2>
+        <p class="mt-4 text-muted-foreground leading-relaxed">
+          Recruiters skim hundreds of resumes per role. Generic applications — the same PDF sent everywhere — signal low effort and poor fit. Manually tailoring each application works, but it does not scale past a handful of roles per week.
+        </p>
+        <p class="mt-4 text-muted-foreground leading-relaxed">
+          {site.problem} The answer is not blind volume. It is repeatable tailoring grounded in a single source of truth: your real career story.
+        </p>
+      </div>
+      <div class="rounded-xl border border-border bg-card p-6">
+        <p class="text-sm font-medium uppercase tracking-wide text-primary">What you get per match</p>
+        <ul class="mt-4 space-y-3 text-muted-foreground">
+          <li class="flex gap-3"><span class="text-primary">✓</span> Role-specific resume PDF</li>
+          <li class="flex gap-3"><span class="text-primary">✓</span> Tailored cover letter PDF</li>
+          <li class="flex gap-3"><span class="text-primary">✓</span> Pre-filled answers for real apply-form fields</li>
+          <li class="flex gap-3"><span class="text-primary">✓</span> Match insights explaining why the role fits</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="border-y border-border bg-muted/20 py-14 sm:py-16">
+    <div class="site-container">
+      <h2 class="text-2xl font-semibold text-foreground sm:text-3xl">Three steps, end to end</h2>
+      <ol class="mt-10 grid gap-8 md:grid-cols-3">
+        <li class="rounded-xl border border-border bg-card p-6">
+          <span class="text-sm font-semibold text-primary">Step 1</span>
+          <h3 class="mt-2 text-xl font-semibold text-foreground">Build your profile once</h3>
+          <p class="mt-3 text-muted-foreground leading-relaxed">
+            Upload your resume and complete a structured profile: experience, skills, preferences, dealbreakers, and behavioral stories. This becomes the evidence base for every future application.
+          </p>
+        </li>
+        <li class="rounded-xl border border-border bg-card p-6">
+          <span class="text-sm font-semibold text-primary">Step 2</span>
+          <h3 class="mt-2 text-xl font-semibold text-foreground">We discover &amp; match</h3>
+          <p class="mt-3 text-muted-foreground leading-relaxed">
+            PrismApply searches curated queries for tech roles on Lever, Greenhouse, and Ashby. Semantic matching plus preference gates surface roles that actually fit — not keyword spam.
+          </p>
+        </li>
+        <li class="rounded-xl border border-border bg-card p-6">
+          <span class="text-sm font-semibold text-primary">Step 3</span>
+          <h3 class="mt-2 text-xl font-semibold text-foreground">Review tailored packages</h3>
+          <p class="mt-3 text-muted-foreground leading-relaxed">
+            Each match becomes a dashboard package: resume, cover letter, and form answers you can copy or download. Submit when ready — nothing goes out automatically.
+          </p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="site-container py-14 sm:py-16">
+    <h2 class="text-2xl font-semibold text-foreground">Under the hood</h2>
+    <div class="mt-8 grid gap-6 sm:grid-cols-2">
+      <div class="rounded-xl border border-border p-6">
+        <h3 class="font-semibold text-foreground">Semantic matching</h3>
+        <p class="mt-2 text-muted-foreground leading-relaxed">
+          Profile and job descriptions are embedded in sections. Similarity scoring finds roles aligned with your background — not just jobs that share buzzwords.
+        </p>
+      </div>
+      <div class="rounded-xl border border-border p-6">
+        <h3 class="font-semibold text-foreground">Truth pledge</h3>
+        <p class="mt-2 text-muted-foreground leading-relaxed">{site.truthPledge}</p>
+      </div>
+      <div class="rounded-xl border border-border p-6">
+        <h3 class="font-semibold text-foreground">Real form fields</h3>
+        <p class="mt-2 text-muted-foreground leading-relaxed">
+          Apply forms are captured when jobs are discovered, so answers map to the labels and field types you will see on the actual application page.
+        </p>
+      </div>
+      <div class="rounded-xl border border-border p-6">
+        <h3 class="font-semibold text-foreground">You approve every send</h3>
+        <p class="mt-2 text-muted-foreground leading-relaxed">
+          Packages land in your dashboard. Mark applications as sent when you submit — PrismApply never auto-applies on your behalf.
+        </p>
+      </div>
+    </div>
+    <p class="mt-8 text-sm text-muted-foreground">
+      Related: <a href="/truthful-ai-resume" class="text-primary hover:underline">Truthful AI resume</a>,
+      <a href="/for/software-engineers" class="text-primary hover:underline">for software engineers</a>,
+      <a href="/vs/auto-apply" class="text-primary hover:underline">auto-apply vs manual</a>.
+    </p>
+  </section>
+
+  <SignupCta location="how-it-works" />
+</PageLayout>

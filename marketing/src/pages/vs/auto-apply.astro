@@ -1,0 +1,85 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro'
+import PageHero from '../../components/PageHero.astro'
+import SignupCta from '../../components/SignupCta.astro'
+---
+
+<PageLayout
+  title="Auto-apply vs manual tailoring"
+  description="LazyApply and auto-appliers optimize for volume. PrismApply optimizes for fit and honesty — compare approaches before you choose a job search tool."
+>
+  <PageHero
+    eyebrow="Comparison"
+    title="Auto-apply vs manual tailoring: volume vs quality"
+    description="Looking for a LazyApply alternative? Here is how blind automation compares to tailored applications grounded in your real profile."
+  />
+
+  <section class="site-container py-14 sm:py-16">
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[640px] border-collapse text-left text-sm">
+        <thead>
+          <tr class="border-b border-border">
+            <th class="py-3 pr-4 font-semibold text-foreground"> </th>
+            <th class="py-3 px-4 font-semibold text-muted-foreground">Auto-appliers</th>
+            <th class="py-3 pl-4 font-semibold text-primary">PrismApply</th>
+          </tr>
+        </thead>
+        <tbody class="text-muted-foreground">
+          <tr class="border-b border-border">
+            <td class="py-4 pr-4 font-medium text-foreground">Primary goal</td>
+            <td class="py-4 px-4">Maximize application count</td>
+            <td class="py-4 pl-4">Maximize fit per application</td>
+          </tr>
+          <tr class="border-b border-border">
+            <td class="py-4 pr-4 font-medium text-foreground">Resume approach</td>
+            <td class="py-4 px-4">Same generic PDF everywhere</td>
+            <td class="py-4 pl-4">Tailored per role from one profile</td>
+          </tr>
+          <tr class="border-b border-border">
+            <td class="py-4 pr-4 font-medium text-foreground">Matching</td>
+            <td class="py-4 px-4">Keyword filters or none</td>
+            <td class="py-4 pl-4">Semantic + preference gates + LLM adjudication</td>
+          </tr>
+          <tr class="border-b border-border">
+            <td class="py-4 pr-4 font-medium text-foreground">Truthfulness</td>
+            <td class="py-4 px-4">Often fabricates or exaggerates</td>
+            <td class="py-4 pl-4">Truth pledge — no invented experience</td>
+          </tr>
+          <tr class="border-b border-border">
+            <td class="py-4 pr-4 font-medium text-foreground">Submission</td>
+            <td class="py-4 px-4">Automatic (you may not review)</td>
+            <td class="py-4 pl-4">You review and submit manually</td>
+          </tr>
+          <tr>
+            <td class="py-4 pr-4 font-medium text-foreground">Best for</td>
+            <td class="py-4 px-4">Spray-and-pray volume plays</td>
+            <td class="py-4 pl-4">Serious tech job seekers who want quality</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="border-y border-border bg-muted/20 py-14 sm:py-16">
+    <div class="site-container max-w-3xl">
+      <h2 class="text-2xl font-semibold text-foreground">Is auto-apply worth it?</h2>
+      <p class="mt-4 text-muted-foreground leading-relaxed">
+        Auto-apply can produce impressive dashboard numbers — 200 applications in a week sounds productive. But response rates often collapse because recruiters recognize generic submissions instantly. Worse, applying to roles you are clearly unqualified for can burn bridges at companies you might want later.
+      </p>
+      <p class="mt-4 text-muted-foreground leading-relaxed">
+        Manual tailoring works but caps around 5–10 quality applications per week for most people. PrismApply sits in the middle: automation for discovery, matching, and first-draft packages — with you as the final editor and submitter.
+      </p>
+    </div>
+  </section>
+
+  <section class="site-container py-14">
+    <h2 class="text-xl font-semibold text-foreground">Related reading</h2>
+    <ul class="mt-4 space-y-2 text-muted-foreground">
+      <li><a href="/faq" class="text-primary hover:underline">FAQ — is auto-apply safe?</a></li>
+      <li><a href="/truthful-ai-resume" class="text-primary hover:underline">Truthful AI resume framework</a></li>
+      <li><a href="/blog/problem-with-auto-appliers-volume-vs-quality" class="text-primary hover:underline">The problem with auto-appliers</a></li>
+    </ul>
+  </section>
+
+  <SignupCta location="vs-auto-apply" />
+</PageLayout>

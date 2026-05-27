@@ -1,0 +1,69 @@
+---
+import PageLayout from '../layouts/PageLayout.astro'
+import PageHero from '../components/PageHero.astro'
+import { site } from '../config'
+---
+
+<PageLayout
+  title="Terms of Service"
+  description="Terms governing your use of PrismApply — the tailored job application platform."
+>
+  <PageHero
+    title="Terms of Service"
+    description={`Last updated: May 27, 2026. By using ${site.name}, you agree to these terms.`}
+  />
+
+  <article class="site-container max-w-3xl pb-16 prose-content">
+    <h2>Service description</h2>
+    <p>
+      PrismApply helps job seekers build a profile, discover matching roles, and prepare tailored application packages.
+      We do not submit applications on your behalf. You are responsible for reviewing and submitting all materials.
+    </p>
+
+    <h2>Account responsibilities</h2>
+    <ul>
+      <li>You must provide accurate information in your profile.</li>
+      <li>You are responsible for maintaining the security of your account credentials.</li>
+      <li>You must be legally able to enter into this agreement in your jurisdiction.</li>
+    </ul>
+
+    <h2>Truthfulness</h2>
+    <p>
+      You agree that information in your profile reflects your real experience. PrismApply tailors and reframes your provided facts
+      but does not verify employment history. Misrepresenting your background in your profile or submitted applications is your responsibility.
+    </p>
+
+    <h2>Acceptable use</h2>
+    <ul>
+      <li>Do not use the service for unlawful purposes.</li>
+      <li>Do not attempt to access other users' data.</li>
+      <li>Do not abuse API endpoints, scrape the service, or interfere with normal operation.</li>
+    </ul>
+
+    <h2>Beta service</h2>
+    <p>
+      PrismApply is currently offered free during beta. Features, pricing, and availability may change.
+      The service is provided "as is" without warranties of uninterrupted availability or specific hiring outcomes.
+    </p>
+
+    <h2>Intellectual property</h2>
+    <p>
+      You retain ownership of content you provide. You grant us a license to process your profile data to operate the service.
+      PrismApply branding, software, and site content remain our property.
+    </p>
+
+    <h2>Limitation of liability</h2>
+    <p>
+      To the maximum extent permitted by law, PrismApply is not liable for hiring outcomes, rejected applications,
+      or indirect damages arising from use of the service.
+    </p>
+
+    <h2>Termination</h2>
+    <p>
+      You may stop using the service at any time. We may suspend accounts that violate these terms.
+    </p>
+
+    <h2>Contact</h2>
+    <p>Questions: legal@prismapply.com</p>
+  </article>
+</PageLayout>

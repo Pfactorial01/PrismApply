@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate } from '@tanstack/react-router'
+import { trackOnce } from '@/lib/analytics'
 import {
   ExternalLink,
   Download,
@@ -196,6 +197,12 @@ export function ApplicationDetailPage() {
   })
 
   const app = apps?.find((a) => a.id === id) ?? null
+
+  useEffect(() => {
+    if (app) {
+      trackOnce('first-package-viewed', 'First Package Viewed', { application_id: app.id })
+    }
+  }, [app])
 
   const mutation = useMutation({
     mutationFn: (sent: boolean) => markApplicationSent(app!.id, sent),

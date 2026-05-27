@@ -1,9 +1,12 @@
 ---
+import SignupLink from './SignupLink.astro'
 import { appPath, site } from '../config'
 
 const nav = [
-  { label: 'How it works', href: '#how-it-works' },
-  { label: 'Features', href: '#features' },
+  { label: 'How it works', href: '/how-it-works' },
+  { label: 'Pricing', href: '/pricing' },
+  { label: 'Blog', href: '/blog' },
+  { label: 'FAQ', href: '/faq' },
 ]
 ---
 
@@ -14,7 +17,7 @@ const nav = [
       {site.name}
     </a>
 
-    <nav class="hidden items-center gap-8 text-sm text-muted-foreground md:flex" aria-label="Main">
+    <nav class="hidden items-center gap-7 text-sm text-muted-foreground md:flex" aria-label="Main">
       {nav.map((item) => (
         <a href={item.href} class="transition-colors hover:text-foreground">
           {item.label}
@@ -29,12 +32,12 @@ const nav = [
       >
         Log in
       </a>
-      <a
-        href={appPath('/signup')}
+      <SignupLink
+        location="header"
         class="rounded-md bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
       >
         Get started
-      </a>
+      </SignupLink>
     </div>
   </div>
 </header>

@@ -1,5 +1,6 @@
 ---
-import { appPath, site } from '../config'
+import SignupLink from './SignupLink.astro'
+import { site } from '../config'
 import PrismDiagram from './PrismDiagram.astro'
 ---
 
@@ -24,14 +25,14 @@ import PrismDiagram from './PrismDiagram.astro'
           {site.interviewPrep}
         </p>
         <div class="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
-          <a
-            href={appPath('/signup')}
+          <SignupLink
+            location="hero"
             class="inline-flex w-full items-center justify-center rounded-md bg-primary px-6 py-3 text-base font-medium text-primary-foreground shadow-sm transition-opacity hover:opacity-90 sm:w-auto"
           >
             Start free
-          </a>
+          </SignupLink>
           <a
-            href="#how-it-works"
+            href="/how-it-works"
             class="inline-flex w-full items-center justify-center rounded-md border border-border bg-card px-6 py-3 text-base font-medium text-foreground transition-colors hover:bg-muted sm:w-auto"
           >
             See how it works

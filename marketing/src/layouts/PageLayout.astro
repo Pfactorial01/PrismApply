@@ -1,0 +1,24 @@
+---
+import BaseLayout from './BaseLayout.astro'
+import Header from '../components/Header.astro'
+import Footer from '../components/Footer.astro'
+
+interface Props {
+  title: string
+  description: string
+  ogImage?: string
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[]
+  includeSoftwareAppSchema?: boolean
+  noindex?: boolean
+}
+
+const props = Astro.props
+---
+
+<BaseLayout {...props}>
+  <Header />
+  <main class="flex-1">
+    <slot />
+  </main>
+  <Footer />
+</BaseLayout>

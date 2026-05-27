@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useRouter } from '@tanstack/react-router'
+import { trackEvent, trackOnce } from '@/lib/analytics'
 import {
   Check,
   ChevronLeft,
@@ -730,6 +731,7 @@ export function ProfileWizard() {
     setDraft(next)
     baselineJson.current = JSON.stringify(next)
     hydrated.current = true
+    trackOnce('profile-step-1', 'Profile Step 1')
   }, [serverDraft, user?.email])
 
   useEffect(() => {
@@ -788,6 +790,7 @@ export function ProfileWizard() {
       await submitApplicantProfile(draft)
       baselineJson.current = JSON.stringify(draft)
       setApplicantProfileCache(queryClient, user.id, draft)
+      trackEvent('Profile Submit')
       await router.invalidate()
       await navigate({ to: '/' })
     } catch (e) {

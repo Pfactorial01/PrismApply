@@ -1,0 +1,37 @@
+---
+import PageLayout from '../layouts/PageLayout.astro'
+import PageHero from '../components/PageHero.astro'
+import FaqList from '../components/FaqList.astro'
+import SignupCta from '../components/SignupCta.astro'
+import { faqItems } from '../data/faq'
+import { faqPageJsonLd } from '../lib/seo'
+---
+
+<PageLayout
+  title="FAQ"
+  description="Honest answers about AI resumes, auto-apply safety, matching, pricing, and how PrismApply keeps your applications truthful."
+  jsonLd={faqPageJsonLd(faqItems)}
+>
+  <PageHero
+    eyebrow="FAQ"
+    title="AI resume honesty, auto-apply safety, and how PrismApply works"
+    description="Straight answers to the questions job seekers ask before trusting an application tool with their career story."
+    align="center"
+  />
+
+  <section class="site-container max-w-3xl pb-8">
+    <FaqList items={faqItems} />
+  </section>
+
+  <section class="site-container pb-14">
+    <div class="rounded-xl border border-border bg-muted/30 p-6 sm:p-8">
+      <h2 class="text-xl font-semibold text-foreground">Still have questions?</h2>
+      <p class="mt-2 text-muted-foreground">
+        Read our comparison of <a href="/vs/auto-apply" class="text-primary hover:underline">auto-apply vs manual tailoring</a>
+        or explore <a href="/truthful-ai-resume" class="text-primary hover:underline">how we keep AI resumes honest</a>.
+      </p>
+    </div>
+  </section>
+
+  <SignupCta location="faq" />
+</PageLayout>

@@ -1,6 +1,7 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
+import { trackOnce } from '@/lib/analytics'
 import {
   FileText,
   Briefcase,
@@ -126,6 +127,12 @@ export function ApplicationsPage() {
 
   const sentApps = useMemo(() => (apps ?? []).filter((a) => a.markedSent), [apps])
   const unsentApps = useMemo(() => (apps ?? []).filter((a) => !a.markedSent), [apps])
+
+  useEffect(() => {
+    if (apps && apps.length > 0) {
+      trackOnce('first-match', 'First Match', { count: String(apps.length) })
+    }
+  }, [apps])
 
   return (
     <div className="space-y-6">

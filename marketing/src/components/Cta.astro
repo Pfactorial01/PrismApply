@@ -1,5 +1,6 @@
 ---
-import { appPath, site } from '../config'
+import SignupLink from './SignupLink.astro'
+import { site } from '../config'
 ---
 
 <section class="border-t border-border bg-muted/30 py-16 sm:py-20">
@@ -10,11 +11,11 @@ import { appPath, site } from '../config'
     <p class="mx-auto mt-4 max-w-xl text-muted-foreground xl:max-w-2xl">
       {site.describeOnce}
     </p>
-    <a
-      href={appPath('/signup')}
+    <SignupLink
+      location="home-cta"
       class="mt-8 inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-base font-medium text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
     >
       Get started — it's free
-    </a>
+    </SignupLink>
   </div>
 </section>

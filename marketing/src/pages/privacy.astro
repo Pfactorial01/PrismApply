@@ -1,0 +1,68 @@
+---
+import PageLayout from '../layouts/PageLayout.astro'
+import PageHero from '../components/PageHero.astro'
+import { site } from '../config'
+---
+
+<PageLayout
+  title="Privacy Policy"
+  description="How PrismApply collects, uses, and protects your profile data, resume, and application packages."
+>
+  <PageHero
+    title="Privacy Policy"
+    description={`Last updated: May 27, 2026. This policy describes how ${site.name} handles your data.`}
+  />
+
+  <article class="site-container max-w-3xl pb-16 prose-content">
+    <h2>Overview</h2>
+    <p>
+      PrismApply ("we", "us") operates the marketing site at {site.url} and the application at {site.appUrl}.
+      We collect information you provide to deliver tailored job application packages. We do not sell your personal data.
+    </p>
+
+    <h2>Information we collect</h2>
+    <ul>
+      <li><strong>Account data:</strong> email address and hashed password.</li>
+      <li><strong>Profile data:</strong> resume text, work history, skills, preferences, and other information you enter in the profile wizard.</li>
+      <li><strong>Generated content:</strong> tailored resumes, cover letters, form answers, and match records.</li>
+      <li><strong>Usage data:</strong> basic analytics (page views and funnel events) if you consent via our analytics provider.</li>
+    </ul>
+
+    <h2>How we use your information</h2>
+    <ul>
+      <li>Authenticate your account and provide the service.</li>
+      <li>Embed your profile for semantic job matching.</li>
+      <li>Generate tailored application packages grounded in your profile.</li>
+      <li>Improve matching and tailoring quality.</li>
+      <li>Communicate service-related updates.</li>
+    </ul>
+
+    <h2>Third-party services</h2>
+    <p>
+      We use infrastructure and API providers (hosting, database, object storage, OpenAI for embeddings and generation, search APIs for job discovery).
+      These providers process data on our behalf under their respective terms and security practices.
+    </p>
+
+    <h2>Data retention</h2>
+    <p>
+      We retain your account and profile data while your account is active. You may request deletion by contacting us.
+      Some logs may be retained for security and debugging for a limited period.
+    </p>
+
+    <h2>Security</h2>
+    <p>
+      Passwords are hashed. API authentication uses HttpOnly cookies. We follow industry-standard practices for transport encryption (HTTPS).
+    </p>
+
+    <h2>Your rights</h2>
+    <p>
+      Depending on your jurisdiction, you may have rights to access, correct, or delete your personal data.
+      Contact us at privacy@prismapply.com for requests.
+    </p>
+
+    <h2>Changes</h2>
+    <p>
+      We may update this policy. Material changes will be posted on this page with an updated date.
+    </p>
+  </article>
+</PageLayout>

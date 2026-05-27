@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="PrismApply  tailored job applications">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#faf7f4"/>
+      <stop offset="100%" stop-color="#f0e8df"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#c45a22"/>
+      <stop offset="100%" stop-color="#e07840"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="980" cy="120" r="180" fill="#c45a22" opacity="0.08"/>
+  <circle cx="200" cy="520" r="220" fill="#c45a22" opacity="0.06"/>
+  <g transform="translate(80, 180)">
+    <rect x="0" y="0" width="56" height="56" rx="12" fill="url(#accent)"/>
+    <path d="M18 38 L28 18 L38 38 Z" fill="#fff" opacity="0.95"/>
+  </g>
+  <text x="160" y="225" font-family="Inter, system-ui, sans-serif" font-size="52" font-weight="700" fill="#2a2420">PrismApply</text>
+  <text x="80" y="310" font-family="Inter, system-ui, sans-serif" font-size="38" font-weight="600" fill="#2a2420">Tailored job applications,</text>
+  <text x="80" y="365" font-family="Inter, system-ui, sans-serif" font-size="38" font-weight="600" fill="#c45a22">grounded in your story</text>
+  <text x="80" y="430" font-family="Inter, system-ui, sans-serif" font-size="24" fill="#5c534c">Tell your story once. Apply to many roles with packages</text>
+  <text x="80" y="465" font-family="Inter, system-ui, sans-serif" font-size="24" fill="#5c534c">tailored from the same truthful profile.</text>
+  <text x="80" y="560" font-family="Inter, system-ui, sans-serif" font-size="20" fill="#8a8078">prismapply.com</text>
+</svg>
