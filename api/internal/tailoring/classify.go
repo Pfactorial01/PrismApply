@@ -49,6 +49,13 @@ var (
 		regexp.MustCompile(`(?i)\bauthorized to work\b`),
 		regexp.MustCompile(`(?i)\blegal.*work\b`),
 	}
+	githubDescribePatterns = []*regexp.Regexp{
+		regexp.MustCompile(`(?i)\b(describe|explain)\b`),
+		regexp.MustCompile(`(?i)\bwhat makes\b`),
+		regexp.MustCompile(`(?i)\btechnically interesting\b`),
+		regexp.MustCompile(`(?i)\bcontribution\b`),
+		regexp.MustCompile(`(?i)\b2.?3 sentences\b`),
+	}
 	behavioralPatterns = []*regexp.Regexp{
 		regexp.MustCompile(`(?i)\bwhy\b.*\b(company|us|this role|delete|join)\b`),
 		regexp.MustCompile(`(?i)\bdescribe a time\b`),
@@ -75,6 +82,17 @@ func isCoverLetterLabel(label string) bool {
 	return coverLetterPattern.MatchString(label)
 }
 
+func isGitHubDescribeQuestion(label string) bool {
+	if !regexp.MustCompile(`(?i)\bgithub\b`).MatchString(label) {
+		return false
+	}
+	return matchAny(label, githubDescribePatterns)
+}
+
+func isGitHubLinkQuestion(label string) bool {
+	return regexp.MustCompile(`(?i)\bgithub\b`).MatchString(label) && !isGitHubDescribeQuestion(label)
+}
+
 func isResumeUploadLabel(label string) bool {
 	return matchAny(label, filePatterns) && !isCoverLetterLabel(label)
 }
@@ -94,6 +112,12 @@ func ClassifyFormField(field FormFieldRow) ClassifiedField {
 	}
 	if matchAny(label, eeoPatterns) {
 		return ClassifiedField{FormFieldRow: field, FieldClass: FieldEEO}
+	}
+	if isGitHubDescribeQuestion(label) {
+		if ft == "textarea" {
+			return ClassifiedField{FormFieldRow: field, FieldClass: FieldLongText}
+		}
+		return ClassifiedField{FormFieldRow: field, FieldClass: FieldBehavior}
 	}
 	if matchAny(label, identityPatterns) {
 		return ClassifiedField{FormFieldRow: field, FieldClass: FieldIdentity}

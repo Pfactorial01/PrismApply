@@ -29,7 +29,8 @@ Rules:
 - Do not include numeric metrics (percentages, multipliers, dollar amounts) unless they appear verbatim in the evidence excerpts or profile impactMetrics fields.
 - Ban generic filler unless profile uses similar language.
 - 250-400 words. Professional tone matching applicant voice where possible.
-- Start with the salutation (e.g. "Dear Hiring Manager,"). Do not include a letterhead, applicant address block, date line, or [Date] placeholder.`
+- Start with the salutation (e.g. "Dear Hiring Manager,"). Do not include a letterhead, applicant address block, date line, or [Date] placeholder.
+- End with a closing (e.g. "Sincerely,") followed by the applicant's full name from profile evidence. Never use placeholders like [Your Name].`
 
 func WriteCoverLetter(ctx context.Context, cfg config.Config, jobTitle, jobCompany string, jd JdRequirements, evidence EvidenceMap) (CoverLetterResult, error) {
 	var topItems []EvidenceItem
@@ -67,13 +68,14 @@ func WriteCoverLetter(ctx context.Context, cfg config.Config, jobTitle, jobCompa
 	if err := CallJSONLLM(ctx, cfg, coverSystemPrompt, user, "cover_letter", coverSchema, 0.35, &parsed); err != nil {
 		return CoverLetterResult{}, err
 	}
+	fullName := strings.TrimSpace(evidence.Identity["fullName"])
 	return CoverLetterResult{
-		CoverLetter: sanitizeCoverLetter(parsed.CoverLetter),
+		CoverLetter: sanitizeCoverLetter(parsed.CoverLetter, fullName),
 		CitedFields: parsed.CitedFields,
 	}, nil
 }
 
-func sanitizeCoverLetter(s string) string {
+func sanitizeCoverLetter(s, fullName string) string {
 	s = strings.TrimSpace(s)
 	if s == "" {
 		return s
@@ -91,5 +93,19 @@ func sanitizeCoverLetter(s string) string {
 		}
 		lines = append(lines, line)
 	}
-	return strings.TrimSpace(strings.Join(lines, "\n"))
+	return replaceCoverLetterPlaceholders(strings.TrimSpace(strings.Join(lines, "\n")), fullName)
+}
+
+func replaceCoverLetterPlaceholders(s, fullName string) string {
+	if fullName == "" {
+		return s
+	}
+	for _, ph := range []string{"[Your Name]", "[your name]", "[YOUR NAME]", "[Name]", "[Applicant Name]"} {
+		s = strings.ReplaceAll(s, ph, fullName)
+	}
+	trimmed := strings.TrimSpace(s)
+	if strings.HasSuffix(trimmed, "Sincerely,") || strings.HasSuffix(trimmed, "Sincerely") {
+		return trimmed + "\n" + fullName
+	}
+	return s
 }

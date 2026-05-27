@@ -78,7 +78,7 @@ func resolveIdentityAnswer(field ClassifiedField, identity map[string]string, pr
 	if matchLabel(label, []*regexp.Regexp{regexp.MustCompile(`(?i)\blinkedin\b`)}) {
 		return orDefault(identity["linkedInUrl"], profileStr(profile, "linkedInUrl"))
 	}
-	if matchLabel(label, []*regexp.Regexp{regexp.MustCompile(`(?i)\bgithub\b`)}) {
+	if isGitHubLinkQuestion(field.Label) {
 		return orDefault(identity["githubUrl"], profileStr(profile, "githubUrl"))
 	}
 	if matchLabel(label, []*regexp.Regexp{regexp.MustCompile(`(?i)\bportfolio\b`), regexp.MustCompile(`(?i)\bwebsite\b`)}) {
@@ -346,15 +346,20 @@ Max 2000 chars. Use applicant voice. No invented facts or metrics. If insufficie
 		primaryBlock = fmt.Sprintf("\nPrimary story to use (from profile field %s):\n%s\n", storyKey, primaryStory)
 	}
 
+	githubBlock := ""
+	if isGitHubDescribeQuestion(field.Label) {
+		githubBlock = githubProjectContext(profile)
+	}
+
 	user := fmt.Sprintf(`Company: %s
 Field: "%s" (required=%t)
 JD themes: %s
-%s
+%s%s
 Relevant evidence:
 %s
 
 Other stories (use only if needed):
-%s`, jobCompany, field.Label, field.Required, strings.Join(jd.ResponsibilityThemes, ", "), primaryBlock, string(itemsJSON), stories.String())
+%s`, jobCompany, field.Label, field.Required, strings.Join(jd.ResponsibilityThemes, ", "), primaryBlock, githubBlock, string(itemsJSON), stories.String())
 
 	var parsed struct {
 		Value          string   `json:"value"`
@@ -460,6 +465,22 @@ var behavioralStoryKeys = []struct {
 	{regexp.MustCompile(`(?i)impactful feedback|feedback you`), "storyDifficultFeedback"},
 	{regexp.MustCompile(`(?i)taught yourself|latest skill`), "storyMentoringTeaching"},
 	{regexp.MustCompile(`(?i)additional information`), "storyHardestTechnicalChallenge"},
+}
+
+func githubProjectContext(profile map[string]any) string {
+	github := profileStr(profile, "githubUrl")
+	raw, ok := profile["projects"]
+	if !ok {
+		if github != "" {
+			return "\nGitHub profile: " + github + "\nWrite 2-3 sentences about a real repository from the profile — do not paste the URL as the answer.\n"
+		}
+		return ""
+	}
+	projectsJSON, err := json.Marshal(raw)
+	if err != nil {
+		return ""
+	}
+	return fmt.Sprintf("\nGitHub profile: %s\nProjects from profile (describe one repo technically — do NOT output a URL as the answer):\n%s\n", github, string(projectsJSON))
 }
 
 func primaryBehavioralStory(profile map[string]any, label string) (string, string) {
