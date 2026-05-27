@@ -67,10 +67,23 @@ func RunPipeline(ctx context.Context, cfg config.Config, pool *pgxpool.Pool, tai
 	}
 	mergeMetadataCitations(&meta, cover.CitedFields)
 
+	fullName := profileStr(tailorCtx.ProfileJSON, "fullName")
+	if fullName == "" {
+		fullName = structuredResume.Name
+	}
+	if fullName == "" {
+		fullName = "Applicant"
+	}
+	cover.CoverLetter = sanitizeCoverLetter(cover.CoverLetter, fullName)
+
 	classified := ClassifyFormFields(tailorCtx.FormFields)
-	formAnswers, err := AnswerFormFields(ctx, cfg, classified, tailorCtx.ProfileJSON, evidence, *jd, tailorCtx.JobCompany, cover.CoverLetter)
+	formAnswers, formLint, err := AnswerFormFields(ctx, cfg, classified, tailorCtx.ProfileJSON, evidence, *jd, tailorCtx.JobCompany, cover.CoverLetter)
 	if err != nil {
 		return PipelineResult{}, err
+	}
+	if len(formLint) > 0 {
+		meta.ValidationWarnings = append(meta.ValidationWarnings, lintMessages(formLint)...)
+		slog.Warn("form_answer_lint", "match_id", tailorCtx.MatchID, "issues", len(formLint))
 	}
 
 	for _, a := range formAnswers {
@@ -84,14 +97,6 @@ func RunPipeline(ctx context.Context, cfg config.Config, pool *pgxpool.Pool, tai
 		}
 	}
 	meta.CitedFields = uniqueStrings(meta.CitedFields)
-
-	fullName := profileStr(tailorCtx.ProfileJSON, "fullName")
-	if fullName == "" {
-		fullName = structuredResume.Name
-	}
-	if fullName == "" {
-		fullName = "Applicant"
-	}
 
 	return PipelineResult{
 		StructuredResume: structuredResume,

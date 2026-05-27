@@ -385,41 +385,22 @@ Other stories (use only if needed):
 	}, nil
 }
 
-func AnswerFormFields(ctx context.Context, cfg config.Config, fields []ClassifiedField, profile map[string]any, evidence EvidenceMap, jd JdRequirements, jobCompany, coverLetter string) ([]FormFieldAnswer, error) {
-	var batchFields, behavioralFields []ClassifiedField
-	for _, f := range fields {
-		switch f.FieldClass {
-		case FieldFile, FieldCoverLetter, FieldCoverLetterText:
-			continue
-		case FieldBehavior, FieldLongText:
-			behavioralFields = append(behavioralFields, f)
-		default:
-			batchFields = append(batchFields, f)
-		}
-	}
+func AnswerFormFields(ctx context.Context, cfg config.Config, fields []ClassifiedField, profile map[string]any, evidence EvidenceMap, jd JdRequirements, jobCompany, coverLetter string) ([]FormFieldAnswer, []FormAnswerLint, error) {
+	routes := ResolveFieldRoutes(fields)
+	enrichRoutesWithIntent(ctx, cfg, routes, fields)
 
-	var answers []FormFieldAnswer
-	for _, f := range fields {
-		switch f.FieldClass {
-		case FieldCoverLetterText:
-			answers = append(answers, FormFieldAnswer{Label: f.Label, Value: coverLetter})
-		}
-	}
-
-	batchAnswers, err := answerBatchFields(ctx, cfg, batchFields, profile, evidence.Identity, jd)
+	answers, err := answerRoutedFields(ctx, cfg, routes, fields, profile, evidence, jd, jobCompany, coverLetter)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	answers = append(answers, batchAnswers...)
 
-	for _, f := range behavioralFields {
-		a, err := answerBehavioralField(ctx, cfg, f, profile, evidence, jd, jobCompany)
-		if err != nil {
-			return nil, err
-		}
-		answers = append(answers, a)
+	ordered := OrderFormAnswers(answers, fields)
+	lints := LintFormAnswers(fields, routes, ordered, coverLetter)
+	if len(lintFailures(lints)) > 0 {
+		ordered = RetryLintFailures(ctx, cfg, fields, routes, ordered, lints, profile, evidence, jd, jobCompany)
+		lints = LintFormAnswers(fields, routes, ordered, coverLetter)
 	}
-	return OrderFormAnswers(answers, fields), nil
+	return ordered, lints, nil
 }
 
 func OrderFormAnswers(answers []FormFieldAnswer, formFields []ClassifiedField) []FormFieldAnswer {
