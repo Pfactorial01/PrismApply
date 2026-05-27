@@ -1,0 +1,10 @@
+# Discover cron — use with: railway up ./api --path-as-root --service discover
+# GitHub deploy: rootDirectory=api, config=/deploy/railway/discover.toml
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.discover"
+
+[deploy]
+restartPolicyType = "NEVER"
+cronSchedule = "0 */6 * * *"

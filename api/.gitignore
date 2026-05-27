@@ -1,4 +1,6 @@
 /bin/
+/worker
+/create-match-users
 *.exe
 *.test
 coverage.out

@@ -180,6 +180,16 @@ Attach both custom domains to the **gateway** service in Railway → Settings �
 5. `gateway` (pattern A)  
 6. `discover` — run manually once, then enable cron  
 
+**Discover CLI deploy** (when GitHub snapshot fails or upload times out):
+
+```bash
+# Service config: rootDirectory empty, config /railway.discover.toml (path-as-root)
+rsync -a --exclude bin/ --exclude worker --exclude create-match-users --exclude .env api/ /tmp/prismapply-api-deploy/
+railway up /tmp/prismapply-api-deploy --path-as-root --service discover --detach
+```
+
+Trigger a one-off run from the Railway dashboard (discover → Deployments → Run) or wait for cron `0 */6 * * *` UTC.
+
 ---
 
 ## Local Docker smoke tests
@@ -206,6 +216,8 @@ docker build -t prismapply-gateway ./deploy/nginx
 | Redis NOAUTH | Set `REDIS_URL=${{Redis.REDIS_URL}}` not bare `REDIS_ADDR` |
 | Tailor fails | jobworker RAM too low; check `CHROME_PATH=/usr/bin/chromium` |
 | Discover skipped | Previous cron run still active (long scrape batch) |
+| Discover: "Failed to create code snapshot" | GitHub repo not connected on the `discover` service (`source.repo` is null). Connect repo in Settings, or deploy via CLI (below) |
+| `railway up ./api` times out | Local `api/bin`, `worker`, `create-match-users` binaries (~50MB). Exclude them before upload |
 | pgvector error | Wrong Postgres template — need pgvector extension |
 
 ---
@@ -215,7 +227,8 @@ docker build -t prismapply-gateway ./deploy/nginx
 ```
 api/Dockerfile                  # HTTP API (distroless)
 api/Dockerfile.embed-worker     # Embed worker
-api/Dockerfile.chrome           # jobworker + discover (build arg CMD_PATH)
+api/Dockerfile.discover          # Discover cron (Chrome + Serper)
+api/railway.discover.toml        # Discover cron schedule (CLI path-as-root)
 api/railway.toml
 frontend/Dockerfile             # Static SPA (internal nginx)
 frontend/railway.toml

@@ -4,10 +4,7 @@
 
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile.chrome"
-
-[build.buildArgs]
-CMD_PATH = "./cmd/discover"
+dockerfilePath = "Dockerfile.discover"
 
 [deploy]
 restartPolicyType = "NEVER"
