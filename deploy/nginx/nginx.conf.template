@@ -1,21 +1,13 @@
 # Generated at container start from docker-entrypoint.sh (envsubst).
-
-upstream api_backend {
-    server ${API_HOST}:${API_PORT};
-}
-
-upstream frontend_backend {
-    server ${FRONTEND_HOST}:${FRONTEND_PORT};
-}
-
-upstream marketing_backend {
-    server ${MARKETING_UPSTREAM_HOST}:${MARKETING_UPSTREAM_PORT};
-}
+# Uses Railway internal DNS with 1s TTL so upstream IPs stay fresh after redeploys.
 
 # Marketing site — prismapply.com
 server {
     listen ${PORT};
     server_name ${MARKETING_HOST};
+
+    resolver [fd12::10] ipv6=on valid=1s;
+    set $marketing_upstream http://${MARKETING_UPSTREAM_HOST}:${MARKETING_UPSTREAM_PORT};
 
     location = /health {
         access_log off;
@@ -24,12 +16,14 @@ server {
     }
 
     location / {
-        proxy_pass http://marketing_backend;
+        proxy_pass $marketing_upstream;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+        proxy_connect_timeout 10s;
+        proxy_read_timeout 60s;
     }
 }
 
@@ -37,6 +31,10 @@ server {
 server {
     listen ${PORT};
     server_name ${APP_HOST};
+
+    resolver [fd12::10] ipv6=on valid=1s;
+    set $api_upstream http://${API_HOST}:${API_PORT};
+    set $frontend_upstream http://${FRONTEND_HOST}:${FRONTEND_PORT};
 
     client_max_body_size 15m;
 
@@ -47,23 +45,26 @@ server {
     }
 
     location /api/ {
-        proxy_pass http://api_backend;
+        proxy_pass $api_upstream;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+        proxy_connect_timeout 10s;
         proxy_read_timeout 180s;
         proxy_send_timeout 180s;
     }
 
     location / {
-        proxy_pass http://frontend_backend;
+        proxy_pass $frontend_upstream;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+        proxy_connect_timeout 10s;
+        proxy_read_timeout 60s;
     }
 }
 
@@ -72,6 +73,10 @@ server {
     listen ${PORT} default_server;
     server_name _;
 
+    resolver [fd12::10] ipv6=on valid=1s;
+    set $api_upstream http://${API_HOST}:${API_PORT};
+    set $frontend_upstream http://${FRONTEND_HOST}:${FRONTEND_PORT};
+
     location = /health {
         access_log off;
         return 200 "ok\n";
@@ -79,17 +84,20 @@ server {
     }
 
     location /api/ {
-        proxy_pass http://api_backend;
+        proxy_pass $api_upstream;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+        proxy_connect_timeout 10s;
         proxy_read_timeout 180s;
     }
 
     location / {
-        proxy_pass http://frontend_backend;
+        proxy_pass $frontend_upstream;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+        proxy_connect_timeout 10s;
+        proxy_read_timeout 60s;
     }
 }
