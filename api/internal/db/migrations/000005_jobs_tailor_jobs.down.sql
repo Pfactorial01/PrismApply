@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS tailor_jobs;
+DROP TABLE IF EXISTS jobs;

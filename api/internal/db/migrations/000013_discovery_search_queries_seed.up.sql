@@ -1,0 +1,22 @@
+INSERT INTO discovery_search_queries (query, priority) VALUES
+    ('site:jobs.lever.co ("software engineer" OR "backend engineer" OR "full stack")', 10),
+    ('site:boards.greenhouse.io ("software engineer" OR "platform engineer")', 10),
+    ('site:jobs.ashbyhq.com ("software engineer" OR "data engineer")', 10),
+    ('site:jobs.lever.co "machine learning engineer" remote', 20),
+    ('site:boards.greenhouse.io "devops" OR "SRE"', 20),
+    ('site:jobs.lever.co "frontend" OR "mobile" OR "iOS" OR "Android"', 20),
+    ('site:boards.greenhouse.io "security engineer" OR "infosec"', 30),
+    ('site:jobs.ashbyhq.com "QA" OR "SDET" OR "test engineer"', 30),
+    ('site:jobs.lever.co "staff engineer" OR "principal engineer"', 40),
+    ('site:boards.greenhouse.io "technical program manager" OR "TPM"', 40),
+    ('site:jobs.ashbyhq.com "infrastructure engineer" OR "platform engineer"', 50),
+    ('site:jobs.lever.co "data scientist" OR "analytics engineer"', 50),
+    ('site:job-boards.greenhouse.io "software engineer" remote', 60),
+    ('site:jobs.lever.co "platform engineer" OR "infrastructure"', 60),
+    ('site:jobs.ashbyhq.com "backend" OR "fullstack" remote', 70),
+    ('site:boards.greenhouse.io "machine learning" OR "ML engineer"', 70),
+    ('site:jobs.lever.co "cloud engineer" OR "kubernetes"', 80),
+    ('site:jobs.ashbyhq.com "product engineer" OR "founding engineer"', 80),
+    ('site:boards.greenhouse.io "data platform" OR "analytics engineer"', 90),
+    ('site:jobs.lever.co "engineering manager" OR "tech lead"', 90)
+ON CONFLICT DO NOTHING;

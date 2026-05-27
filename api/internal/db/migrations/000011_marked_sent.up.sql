@@ -1,0 +1,2 @@
+ALTER TABLE tailored_applications ADD COLUMN IF NOT EXISTS marked_sent BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE tailored_applications ADD COLUMN IF NOT EXISTS sent_at TIMESTAMPTZ;

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 260" width="920" height="260" fill="none" role="img" aria-labelledby="prism-title">
+  <title id="prism-title">PrismApply: your story becomes tailored applications</title>
+  <defs>
+    <linearGradient id="beam-in" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#c45a2a" stop-opacity="0"/>
+      <stop offset="45%" stop-color="#c45a2a" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#c45a2a" stop-opacity="0.6"/>
+    </linearGradient>
+    <linearGradient id="beam-1" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#c45a2a" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#ff6b6b"/>
+    </linearGradient>
+    <linearGradient id="beam-2" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#c45a2a" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#51cf66"/>
+    </linearGradient>
+    <linearGradient id="beam-3" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#c45a2a" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#4dabf7"/>
+    </linearGradient>
+    <linearGradient id="prism-glass" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#c45a2a" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#c45a2a" stop-opacity="0.1"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="16" y="143" width="148" height="10" rx="5" fill="url(#beam-in)"/>
+  <text x="16" y="136" fill="#3d3429" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="600">Your story</text>
+
+  <path d="M 150 220 L 320 52 L 490 220 Z" fill="url(#prism-glass)" stroke="#c45a2a" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M 172 206 L 320 68 L 468 206 Z" fill="#c45a2a" fill-opacity="0.14"/>
+  <line x1="150" y1="220" x2="490" y2="220" stroke="#c45a2a" stroke-width="2" stroke-opacity="0.35"/>
+
+  <g transform="rotate(-10, 376.85, 82.87)">
+    <rect x="376.85" y="77.87" width="180" height="10" rx="5" fill="url(#beam-1)"/>
+    <text x="568.85" y="86.87" fill="#3d3429" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500">Tailored application 1</text>
+  </g>
+  <g transform="rotate(0, 408.4, 139.36)">
+    <rect x="408.4" y="134.36" width="180" height="10" rx="5" fill="url(#beam-2)"/>
+    <text x="600.4" y="143.36" fill="#3d3429" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500">Tailored application 2</text>
+  </g>
+  <g transform="rotate(10, 439.95, 195.85)">
+    <rect x="439.95" y="190.85" width="180" height="10" rx="5" fill="url(#beam-3)"/>
+    <text x="631.95" y="199.85" fill="#3d3429" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500">Tailored application 3</text>
+  </g>
+</svg>

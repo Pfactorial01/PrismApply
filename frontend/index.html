@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#C45A22" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Put your best foot forward. Tell your story once — PrismApply discovers roles and prepares tailored, truthful application packages for each match." />
+    <meta property="og:title" content="PrismApply — Put your best foot forward" />
+    <meta property="og:description" content="Tailored job applications grounded in your profile. We never invent or manufacture experience." />
+    <title>PrismApply</title>
+    <script>
+      (function () {
+        var k = 'prismapply:theme';
+        var s = localStorage.getItem(k);
+        var dark =
+          s === 'dark' ||
+          (s !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        var root = document.documentElement;
+        if (dark) root.classList.add('dark');
+        root.style.colorScheme = dark ? 'dark' : 'light';
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

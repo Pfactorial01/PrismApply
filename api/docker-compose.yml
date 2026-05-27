@@ -1,0 +1,10 @@
+# Local / staging: run the same image shape as production.
+# Uses host networking so DATABASE_URL with 127.0.0.1 (Postgres on the host) works unchanged.
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    network_mode: host
+    env_file:
+      - .env

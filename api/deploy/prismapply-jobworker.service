@@ -1,0 +1,16 @@
+[Unit]
+Description=PrismApply job worker (match queue + tailor + forward process)
+After=network-online.target redis.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=prismapply
+Group=prismapply
+EnvironmentFile=-/etc/prismapply/api.env
+ExecStart=/usr/local/bin/prismapply-jobworker
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

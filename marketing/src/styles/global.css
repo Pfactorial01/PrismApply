@@ -1,0 +1,38 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+
+@theme inline {
+  --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-border: var(--border);
+  --color-card: var(--card);
+}
+
+:root {
+  --background: oklch(0.985 0.006 65);
+  --foreground: oklch(0.22 0.02 58);
+  --card: oklch(0.998 0.004 65);
+  --muted: oklch(0.96 0.01 65);
+  --muted-foreground: oklch(0.5 0.025 58);
+  --primary: oklch(0.55 0.17 42);
+  --primary-foreground: oklch(0.99 0.005 65);
+  --border: oklch(0.88 0.016 58);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-background text-foreground font-sans antialiased;
+}
+
+.site-container {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6 xl:max-w-7xl 2xl:max-w-[90rem];
+}

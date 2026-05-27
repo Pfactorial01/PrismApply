@@ -1,0 +1,42 @@
+---
+import { site } from '../config'
+
+const features = [
+  {
+    title: 'Truthful tailoring',
+    body: site.truthPledge,
+  },
+  {
+    title: 'Semantic matching',
+    body: 'We find roles that actually fit your background — not just keyword hits on a job board.',
+  },
+  {
+    title: 'Real apply forms',
+    body: 'Application forms are captured at discovery time, so tailored answers map to the fields you will fill in.',
+  },
+  {
+    title: 'Review before you send',
+    body: 'Every package lands in your dashboard for review. Nothing is submitted on your behalf without you.',
+  },
+]
+---
+
+<section id="features" class="py-20 sm:py-24">
+  <div class="site-container">
+    <div class="mx-auto max-w-2xl text-center xl:max-w-3xl">
+      <h2 class="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Built for serious job seekers</h2>
+      <p class="mt-4 text-lg text-muted-foreground">
+        Tailored applications that put your best foot forward — always factual, never fabricated.
+      </p>
+    </div>
+
+    <ul class="mt-14 grid gap-6 sm:grid-cols-2">
+      {features.map((feature) => (
+        <li class="rounded-xl border border-border bg-card p-6">
+          <h3 class="text-lg font-semibold text-foreground">{feature.title}</h3>
+          <p class="mt-2 text-muted-foreground leading-relaxed">{feature.body}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>

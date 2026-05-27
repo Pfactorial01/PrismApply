@@ -1,0 +1,47 @@
+---
+import { appPath, site } from '../config'
+import PrismDiagram from './PrismDiagram.astro'
+---
+
+<section class="relative overflow-x-hidden border-b border-border">
+  <div
+    class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,oklch(0.75_0.12_42/0.25),transparent)]"
+    aria-hidden="true"
+  />
+
+  <div class="relative site-container py-16 sm:py-24 lg:py-28">
+    <div class="grid items-center gap-12 lg:grid-cols-[1fr_1.2fr] lg:gap-12 xl:grid-cols-[1fr_1.35fr] xl:gap-16">
+      <div class="text-center lg:text-left">
+        <p class="mb-4 text-sm font-medium uppercase tracking-widest text-primary">{site.tagline}</p>
+        <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:leading-[1.12]">
+          <span class="block">Stop sending <span class="line-through decoration-muted-foreground/60 text-muted-foreground/80">generic</span> applications</span>
+          <span class="mt-1 block">Start sending <span class="text-primary">tailored</span> ones</span>
+        </h1>
+        <p class="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground xl:max-w-2xl lg:mx-0">
+          {site.describeOnce}
+        </p>
+        <p class="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground/90 xl:max-w-2xl lg:mx-0">
+          {site.interviewPrep}
+        </p>
+        <div class="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
+          <a
+            href={appPath('/signup')}
+            class="inline-flex w-full items-center justify-center rounded-md bg-primary px-6 py-3 text-base font-medium text-primary-foreground shadow-sm transition-opacity hover:opacity-90 sm:w-auto"
+          >
+            Start free
+          </a>
+          <a
+            href="#how-it-works"
+            class="inline-flex w-full items-center justify-center rounded-md border border-border bg-card px-6 py-3 text-base font-medium text-foreground transition-colors hover:bg-muted sm:w-auto"
+          >
+            See how it works
+          </a>
+        </div>
+      </div>
+
+      <div class="mx-auto w-full max-w-3xl py-2 text-muted-foreground sm:py-4 lg:max-w-none lg:min-w-0 lg:py-0">
+        <PrismDiagram class="h-auto w-full max-h-[min(320px,46vh)] sm:max-h-[min(360px,50vh)] lg:max-h-none lg:scale-105 xl:scale-110 2xl:scale-[1.15] lg:origin-center" />
+      </div>
+    </div>
+  </div>
+</section>

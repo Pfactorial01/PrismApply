@@ -1,0 +1,42 @@
+---
+import { site } from '../config'
+
+const steps = [
+  {
+    step: '01',
+    title: 'Tell your story once',
+    body: 'Upload your resume and describe your experience, goals, and preferences. This becomes the single source of truth for every application.',
+  },
+  {
+    step: '02',
+    title: 'We search & tailor',
+    body: 'PrismApply discovers matching tech roles and builds tailored resumes, cover letters, and form answers for each one — grounded in what you shared.',
+  },
+  {
+    step: '03',
+    title: 'You prep & apply',
+    body: site.interviewPrep + ' Review each package, then send when you are ready.',
+  },
+]
+---
+
+<section id="how-it-works" class="border-b border-border py-20 sm:py-24">
+  <div class="site-container">
+    <div class="mx-auto max-w-2xl text-center xl:max-w-3xl">
+      <h2 class="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">How it works</h2>
+      <p class="mt-4 text-lg text-muted-foreground">
+        One profile. Many tailored applications. You stay in control of what goes out.
+      </p>
+    </div>
+
+    <ol class="mt-14 grid gap-8 md:grid-cols-3">
+      {steps.map((item) => (
+        <li class="rounded-xl border border-border bg-card p-6">
+          <span class="text-sm font-semibold text-primary">{item.step}</span>
+          <h3 class="mt-3 text-xl font-semibold text-foreground">{item.title}</h3>
+          <p class="mt-2 text-muted-foreground leading-relaxed">{item.body}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

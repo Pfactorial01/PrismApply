@@ -1,0 +1,13 @@
+[Unit]
+Description=PrismApply job discovery run
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=prismapply
+Group=prismapply
+EnvironmentFile=-/etc/prismapply/api.env
+ExecStart=/usr/local/bin/prismapply-discover
+
+[Install]
+WantedBy=multi-user.target
