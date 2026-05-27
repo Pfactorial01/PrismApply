@@ -100,6 +100,54 @@ To use a config file outside the service root, set **Settings → Config file pa
 
 ---
 
+## Connect GitHub (auto-deploy on push)
+
+Each app service must connect to **`Pfactorial01/PrismApply`** separately. Railway does **not** share one repo link across services.
+
+### Per-service checklist
+
+For **each** of: `api`, `embed-worker`, `jobworker`, `discover`, `frontend`, `marketing`, `gateway`:
+
+1. Open the service → **Settings** → **Source**
+2. Click **Connect Repo** → choose **`Pfactorial01/PrismApply`** → branch **`main`**
+3. Confirm **Root Directory** and **Config file path** match the table below
+4. **Start Command** must be **empty** (do not use `start.sh` — that is local dev only)
+5. Enable **Wait for CI** off; **Auto-deploy** on (default when repo is connected)
+
+| Service | Root directory | Config file path |
+|---------|----------------|------------------|
+| `api` | `api` | `/api/railway.toml` |
+| `embed-worker` | `api` | `/deploy/railway/embed-worker.toml` |
+| `jobworker` | `api` | `/deploy/railway/jobworker.toml` |
+| `discover` | `api` | `/deploy/railway/discover.toml` |
+| `frontend` | `frontend` | `/frontend/railway.toml` |
+| `marketing` | `marketing` | `/marketing/railway.toml` |
+| `gateway` | `deploy/nginx` | `/deploy/nginx/railway.toml` |
+
+Skip **pgvector**, **Redis**, and **postgres-volume** — those are databases, not repo services.
+
+### After connecting
+
+Push to `main` on GitHub. Each service whose files changed will rebuild (Railway watches its root directory).
+
+Test one service without pushing:
+
+```bash
+railway redeploy --from-source --service api -y
+```
+
+Use `--from-source` (GitHub snapshot), **not** `railway up` (local upload).
+
+### Common mistakes
+
+| Mistake | Symptom |
+|---------|---------|
+| Repo connected at project root only | Tries to run `start.sh`, or RAILPACK instead of Dockerfile |
+| Wrong root directory | `service config at '…/railway.toml' not found` |
+| CLI `--path-as-root` config left in place | Same config-not-found error on GitHub deploy — use monorepo paths above |
+
+---
+
 ## First-time setup
 
 ### 1. Create project + data stores
