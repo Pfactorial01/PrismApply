@@ -3,6 +3,8 @@ package tailoring
 import (
 	"strings"
 	"testing"
+
+	"prismapply/api/internal/profilemode"
 )
 
 func TestValidateStructuredResume_density(t *testing.T) {
@@ -21,7 +23,7 @@ func TestValidateStructuredResume_density(t *testing.T) {
 			}},
 		},
 	}
-	result := ValidateStructuredResume(resume)
+	result := ValidateStructuredResume(resume, profilemode.LayoutEmploymentLed)
 	if result.OK {
 		t.Fatal("expected density validation to fail")
 	}

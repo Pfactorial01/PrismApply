@@ -11,7 +11,8 @@ import (
 )
 
 type UserSettings struct {
-	MatchTierMode string `json:"matchTierMode"`
+	MatchTierMode       string `json:"matchTierMode"`
+	AllowStretchMatches bool   `json:"allowStretchMatches"`
 }
 
 func GetUserSettings(ctx context.Context, pool *pgxpool.Pool, userID uuid.UUID) (UserSettings, error) {
@@ -20,7 +21,8 @@ func GetUserSettings(ctx context.Context, pool *pgxpool.Pool, userID uuid.UUID) 
 		return UserSettings{}, err
 	}
 	return UserSettings{
-		MatchTierMode: matching.NormalizeMatchTierMode(prefs.MatchTierMode),
+		MatchTierMode:       matching.NormalizeMatchTierMode(prefs.MatchTierMode),
+		AllowStretchMatches: prefs.AllowStretchMatches,
 	}, nil
 }
 
@@ -82,6 +84,49 @@ func DeletePendingPromisingMatches(ctx context.Context, pool *pgxpool.Pool, user
 		return 0, nil
 	}
 
+	tag, err := pool.Exec(ctx, `DELETE FROM job_matches WHERE id = ANY($1)`, deleteIDs)
+	if err != nil {
+		return 0, err
+	}
+	return tag.RowsAffected(), nil
+}
+
+// DeletePendingStretchMatches removes pending seniority-stretch matches when opt-in is disabled.
+func DeletePendingStretchMatches(ctx context.Context, pool *pgxpool.Pool, userID uuid.UUID) (int64, error) {
+	rows, err := pool.Query(ctx, `
+		SELECT jm.id, jm.adjudication
+		FROM job_matches jm
+		WHERE jm.user_id = $1
+		  AND jm.status = 'pending'
+		  AND NOT EXISTS (
+		    SELECT 1 FROM tailored_applications ta WHERE ta.match_id = jm.id
+		  )`, userID)
+	if err != nil {
+		return 0, err
+	}
+	defer rows.Close()
+
+	var deleteIDs []int64
+	for rows.Next() {
+		var id int64
+		var adjRaw []byte
+		if err := rows.Scan(&id, &adjRaw); err != nil {
+			return 0, err
+		}
+		var adj matching.AdjudicationResult
+		if len(adjRaw) > 0 {
+			_ = json.Unmarshal(adjRaw, &adj)
+		}
+		if adj.SeniorityFit == "over" {
+			deleteIDs = append(deleteIDs, id)
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return 0, err
+	}
+	if len(deleteIDs) == 0 {
+		return 0, nil
+	}
 	tag, err := pool.Exec(ctx, `DELETE FROM job_matches WHERE id = ANY($1)`, deleteIDs)
 	if err != nil {
 		return 0, err

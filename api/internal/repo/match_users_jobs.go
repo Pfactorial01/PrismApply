@@ -71,7 +71,7 @@ func MatchUserToRecentJobs(ctx context.Context, pool *pgxpool.Pool, userID uuid.
 			continue
 		}
 
-		score, err := ScoreUserJob(ctx, pool, userID, job.ID)
+		score, err := ScoreUserJobForUser(ctx, pool, userID, job.ID, prefs.ProfileMode)
 		if err != nil {
 			return nil, err
 		}
@@ -99,6 +99,9 @@ func MatchUserToRecentJobs(ctx context.Context, pool *pgxpool.Pool, userID uuid.
 			slog.Warn("reverse match adjudication fallback", "job_id", job.ID, "error", adjudErr)
 		}
 		if !matching.AdjudicationAccepted(adjudication) {
+			continue
+		}
+		if !matching.MatchPassesStretchFilter(prefs, &adjudication) {
 			continue
 		}
 

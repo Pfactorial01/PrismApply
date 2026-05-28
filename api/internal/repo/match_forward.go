@@ -133,7 +133,7 @@ func MatchJobToUsers(ctx context.Context, pool *pgxpool.Pool, jobID uuid.UUID, a
 			continue
 		}
 
-		score, err := ScoreUserJob(ctx, pool, user.UserID, jobID)
+		score, err := ScoreUserJobForUser(ctx, pool, user.UserID, jobID, prefs.ProfileMode)
 		if err != nil {
 			return nil, err
 		}
@@ -161,6 +161,9 @@ func MatchJobToUsers(ctx context.Context, pool *pgxpool.Pool, jobID uuid.UUID, a
 			slog.Warn("forward match adjudication fallback", "user_id", user.UserID, "error", adjudErr)
 		}
 		if !matching.AdjudicationAccepted(adjudication) {
+			continue
+		}
+		if !matching.MatchPassesStretchFilter(prefs, &adjudication) {
 			continue
 		}
 

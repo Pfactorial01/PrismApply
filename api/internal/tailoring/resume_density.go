@@ -3,6 +3,8 @@ package tailoring
 import (
 	"fmt"
 	"strings"
+
+	"prismapply/api/internal/profilemode"
 )
 
 const (
@@ -14,6 +16,7 @@ const (
 // ResumeDensityHints guides the resume writer toward appropriate length without inventing facts.
 type ResumeDensityHints struct {
 	PageTarget           string
+	ResumeLayout         string
 	SeniorityTarget      string
 	YearsExperience      string
 	MinBulletsMostRecent int
@@ -30,17 +33,37 @@ type ExpandFieldHint struct {
 func buildResumeDensityHints(profile map[string]any) ResumeDensityHints {
 	seniority := profileStr(profile, "seniorityTarget")
 	years := profileStr(profile, "yearsExperience")
+	layout := profileStr(profile, "resumeLayout")
+	if layout == "" {
+		layout = profilemode.DeriveResumeLayoutFromDoc(profile)
+	}
 	page := "1 page"
-	if isExtendedResumeSeniority(seniority, years) {
+	if layout == profilemode.LayoutEmploymentLed && isExtendedResumeSeniority(seniority, years) {
 		page = "2 pages maximum"
 	}
+
+	minRecent := minBulletsMostRecentRole
+	minOther := minBulletsOtherRole
+	minProject := minBulletsPerProject
+	switch layout {
+	case profilemode.LayoutProjectOnly:
+		minRecent = 0
+		minOther = 0
+		minProject = 3
+	case profilemode.LayoutHybrid:
+		minRecent = 2
+		minOther = 2
+		minProject = 3
+	}
+
 	return ResumeDensityHints{
 		PageTarget:           page,
+		ResumeLayout:         layout,
 		SeniorityTarget:      seniority,
 		YearsExperience:      years,
-		MinBulletsMostRecent: minBulletsMostRecentRole,
-		MinBulletsOtherRole:  minBulletsOtherRole,
-		MinBulletsPerProject: minBulletsPerProject,
+		MinBulletsMostRecent: minRecent,
+		MinBulletsOtherRole:  minOther,
+		MinBulletsPerProject: minProject,
 	}
 }
 
@@ -104,15 +127,44 @@ func collectExpandFieldHints(profile map[string]any) []ExpandFieldHint {
 			add(field, strings.Join(parts, "\n"))
 		}
 	}
+
+	if entries, ok := profile["workEntries"].([]any); ok {
+		for i, item := range entries {
+			m, ok := item.(map[string]any)
+			if !ok {
+				continue
+			}
+			parts := filterNonEmpty([]string{
+				strFrom(m, "role", "Role: "),
+				strFrom(m, "company", "Company: "),
+				profileStr(m, "summaryBullets"),
+			})
+			if len(parts) == 0 {
+				continue
+			}
+			add(fmt.Sprintf("workEntries[%d]", i), strings.Join(parts, "\n"))
+		}
+	}
 	return hints
 }
 
 func formatDensityHintsBlock(h ResumeDensityHints) string {
-	return fmt.Sprintf(`Page target: %s
+	layoutNote := ""
+	switch h.ResumeLayout {
+	case profilemode.LayoutProjectOnly:
+		layoutNote = "Layout: project_only — Skills, Education, Projects only. experience[] must be empty. Do not invent employers."
+	case profilemode.LayoutHybrid:
+		layoutNote = "Layout: hybrid — Skills, Education, short internship Experience block (from workEntries only), then Projects."
+	default:
+		layoutNote = "Layout: employment_led — standard Experience then Projects."
+	}
+	return fmt.Sprintf(`%s
+Page target: %s
 Applicant seniority: %s
 Years experience: %s
 Minimum bullets — most recent role: %d; other roles: %d; each included project: %d
 Fill the page target using profile-backed detail. Do not pad with generic filler or invented metrics.`,
+		layoutNote,
 		h.PageTarget,
 		orDefault(h.SeniorityTarget, "unspecified"),
 		orDefault(h.YearsExperience, "unspecified"),

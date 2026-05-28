@@ -10,17 +10,26 @@ import {
   ArrowUpFromLine,
   Loader2,
 } from 'lucide-react'
-import type { ApplicantProfileDraft, ProjectEntry } from './types'
-import { newProjectEntry } from './types'
+import type { ApplicantProfileDraft, ProjectEntry, WorkEntry } from './types'
+import { newProjectEntry, newWorkEntry } from './types'
 import { isApplicantProfileComplete, isWizardStepComplete } from './profileCompletion'
+import {
+  deriveProfileMode,
+  getWizardSteps,
+  isEarlyBasics,
+  minProjectsRequired,
+  type WizardStepDef,
+} from './profileMode'
 import {
   COMPENSATION_BAND_OPTIONS,
   DEALBREAKER_SLUGS,
   DISCIPLINE_OPTIONS,
+  EARLY_MOTIVATION_SLUGS,
   EDUCATION_OPTIONS,
   INDUSTRY_SLUGS,
   MOTIVATION_SLUGS,
   NEXT_ROLE_SLUGS,
+  PAID_WORK_EXPERIENCE_OPTIONS,
   PROJECT_KIND_OPTIONS,
   PROJECT_PRIMARY_TECH_OPTIONS,
   RAMP_AREA_SLUGS,
@@ -29,6 +38,7 @@ import {
   TEAM_SIZE_OPTIONS,
   TIMEZONE_OPTIONS,
   TOOL_SLUGS,
+  WORK_ENTRY_TYPE_OPTIONS,
   type SelectOption,
   VISA_STATUS_OPTIONS,
   WORK_ARRANGEMENT_OPTIONS,
@@ -43,6 +53,8 @@ import {
 } from '@/lib/profileApi'
 import { authMeQueryKey, fetchAuthMe } from '@/lib/auth'
 import { describeOnceLine, truthPledge } from '@/lib/copy'
+import { FieldExampleButton } from './FieldExampleModal'
+import type { FieldExampleKey } from './fieldExamples'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -56,23 +68,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-type StepDef = {
-  id: string
-  title: string
-  shortTitle: string
-}
-
-const STEPS: StepDef[] = [
-  { id: 'basics', title: 'Basic information', shortTitle: 'Basics' },
-  { id: 'targets', title: 'What you are looking for', shortTitle: 'Targets' },
-  { id: 'experience', title: 'Career narrative', shortTitle: 'Experience' },
-  { id: 'resume-upload', title: 'Upload your current resume', shortTitle: 'Resume' },
-  { id: 'skills', title: 'Skills & education', shortTitle: 'Skills' },
-  { id: 'projects', title: 'Personal projects', shortTitle: 'Projects' },
-  { id: 'stories', title: 'Behavioral stories', shortTitle: 'Stories' },
-  { id: 'goals', title: 'Motivations & boundaries', shortTitle: 'Goals' },
-  { id: 'work-style', title: 'Work style & logistics', shortTitle: 'Work' },
-]
+type StepDef = WizardStepDef
 
 function toggleSlug(list: string[], slug: string, on: boolean): string[] {
   if (on) return list.includes(slug) ? list : [...list, slug]
@@ -134,18 +130,33 @@ function TextField({
   label,
   hint,
   optional,
+  exampleKey,
+  questionOverride,
+  seniorityTarget = '',
   ...props
 }: {
   label: string
   hint?: string
   optional?: boolean
+  exampleKey?: FieldExampleKey
+  questionOverride?: string
+  seniorityTarget?: string
 } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div className="grid gap-2">
-      <Label>
-        {label}
-        {optional ? <span className="font-normal text-muted-foreground"> (optional)</span> : null}
-      </Label>
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
+        <Label>
+          {label}
+          {optional ? <span className="font-normal text-muted-foreground"> (optional)</span> : null}
+        </Label>
+        {exampleKey ? (
+          <FieldExampleButton
+            exampleKey={exampleKey}
+            seniorityTarget={seniorityTarget}
+            questionOverride={questionOverride ?? label}
+          />
+        ) : null}
+      </div>
       {hint ? <p className="text-xs text-muted-foreground -mt-1">{hint}</p> : null}
       <Input {...props} />
     </div>
@@ -156,18 +167,33 @@ function LongField({
   label,
   hint,
   optional,
+  exampleKey,
+  questionOverride,
+  seniorityTarget = '',
   ...props
 }: {
   label: string
   hint?: string
   optional?: boolean
+  exampleKey?: FieldExampleKey
+  questionOverride?: string
+  seniorityTarget?: string
 } & React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <div className="grid gap-2">
-      <Label>
-        {label}
-        {optional ? <span className="font-normal text-muted-foreground"> (optional)</span> : null}
-      </Label>
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
+        <Label>
+          {label}
+          {optional ? <span className="font-normal text-muted-foreground"> (optional)</span> : null}
+        </Label>
+        {exampleKey ? (
+          <FieldExampleButton
+            exampleKey={exampleKey}
+            seniorityTarget={seniorityTarget}
+            questionOverride={questionOverride ?? label}
+          />
+        ) : null}
+      </div>
       {hint ? <p className="text-xs text-muted-foreground -mt-1">{hint}</p> : null}
       <Textarea className="min-h-[120px]" {...props} />
     </div>
@@ -234,15 +260,25 @@ function CheckboxGrid({
   )
 }
 
-function ProgressBar({ current, draft, onStepClick }: { current: number; draft: ApplicantProfileDraft; onStepClick?: (i: number) => void }) {
-  const completed = STEPS.map((_, i) => isWizardStepComplete(STEPS[i].id, draft))
+function ProgressBar({
+  steps,
+  current,
+  draft,
+  onStepClick,
+}: {
+  steps: StepDef[]
+  current: number
+  draft: ApplicantProfileDraft
+  onStepClick?: (i: number) => void
+}) {
+  const completed = steps.map((s) => isWizardStepComplete(s.id, draft))
   const completedCount = completed.filter(Boolean).length
 
   return (
     <div className="space-y-3">
       {/* Desktop horizontal stepper */}
       <div className="hidden gap-0 sm:flex">
-        {STEPS.map((step, i) => {
+        {steps.map((step, i) => {
           const isComplete = completed[i]
           const isCurrent = i === current
           const clickable = (isComplete || isCurrent) && onStepClick
@@ -287,7 +323,7 @@ function ProgressBar({ current, draft, onStepClick }: { current: number; draft: 
                   {step.shortTitle}
                 </span>
               </div>
-              {i < STEPS.length - 1 && (
+              {i < steps.length - 1 && (
                 <div
                   className={`mx-2 h-px flex-1 transition-colors ${
                     isComplete ? 'bg-primary/40' : 'bg-border'
@@ -303,10 +339,10 @@ function ProgressBar({ current, draft, onStepClick }: { current: number; draft: 
       <div className="flex items-center gap-3 sm:hidden">
         <div className="flex items-center gap-2 text-sm">
           <span className="font-medium text-foreground">Step {current + 1}</span>
-          <span className="text-muted-foreground">of {STEPS.length}</span>
+          <span className="text-muted-foreground">of {steps.length}</span>
         </div>
         <div className="flex flex-1 gap-1">
-          {STEPS.map((_, i) => (
+          {steps.map((_, i) => (
             <div
               key={i}
               className={`h-1.5 flex-1 rounded-full transition-colors ${
@@ -316,7 +352,7 @@ function ProgressBar({ current, draft, onStepClick }: { current: number; draft: 
           ))}
         </div>
         <span className="text-xs text-muted-foreground tabular-nums">
-          {completedCount}/{STEPS.length}
+          {completedCount}/{steps.length}
         </span>
       </div>
     </div>
@@ -330,32 +366,53 @@ function StepBasics({
   draft: ApplicantProfileDraft
   patch: <K extends keyof ApplicantProfileDraft>(key: K, value: ApplicantProfileDraft[K]) => void
 }) {
+  const early = isEarlyBasics(draft)
+  const st = draft.seniorityTarget
   return (
     <div className="space-y-5">
       <div className="grid gap-4 sm:grid-cols-2">
-        <TextField label="Full legal name" value={draft.fullName} onChange={(e) => patch('fullName', e.target.value)} autoComplete="name" />
+        <TextField label="Full legal name" exampleKey="fullName" seniorityTarget={st} value={draft.fullName} onChange={(e) => patch('fullName', e.target.value)} autoComplete="name" />
         <TextField label="Email address" type="email" value={draft.email} onChange={(e) => patch('email', e.target.value)} autoComplete="email" hint="" />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <TextField label="Phone number" type="tel" value={draft.phoneNumber} onChange={(e) => patch('phoneNumber', e.target.value)} autoComplete="tel" />
+        <TextField label="Phone number" type="tel" exampleKey="phoneNumber" seniorityTarget={st} value={draft.phoneNumber} onChange={(e) => patch('phoneNumber', e.target.value)} autoComplete="tel" />
       </div>
-      <TextField label="Preferred name" optional value={draft.preferredName} onChange={(e) => patch('preferredName', e.target.value)} hint="How you sign emails" />
-      <TextField label="One-line professional headline" value={draft.headline} onChange={(e) => patch('headline', e.target.value)} />
-      <TextField label="Current company" optional hint="For application forms that ask for your current employer." value={draft.currentCompany} onChange={(e) => patch('currentCompany', e.target.value)} />
+      <TextField label="Preferred name" optional exampleKey="preferredName" seniorityTarget={st} value={draft.preferredName} onChange={(e) => patch('preferredName', e.target.value)} hint="How you sign emails" />
+      <TextField
+        label="One-line professional headline"
+        exampleKey="headline"
+        seniorityTarget={st}
+        value={draft.headline}
+        onChange={(e) => patch('headline', e.target.value)}
+        hint={early ? 'e.g. CS student · React + Python' : undefined}
+      />
+      {early ? (
+        <TextField
+          label="Current status"
+          optional
+          exampleKey="currentStatus"
+          seniorityTarget={st}
+          hint="e.g. Student at State U, bootcamp graduate, job searching"
+          value={draft.currentStatus}
+          onChange={(e) => patch('currentStatus', e.target.value)}
+        />
+      ) : (
+        <TextField label="Current company" optional exampleKey="currentCompany" seniorityTarget={st} hint="For application forms that ask for your current employer." value={draft.currentCompany} onChange={(e) => patch('currentCompany', e.target.value)} />
+      )}
       <div className="grid gap-4 sm:grid-cols-2">
         <SelectField label="Country / region" options={REGION_OPTIONS} value={draft.region} onChange={(v) => patch('region', v)} />
-        <TextField label="City or locality" value={draft.cityOrDetail} onChange={(e) => patch('cityOrDetail', e.target.value)} hint="Keep honest to relocation limits" />
+        <TextField label="City or locality" exampleKey="cityOrDetail" seniorityTarget={st} value={draft.cityOrDetail} onChange={(e) => patch('cityOrDetail', e.target.value)} hint="Keep honest to relocation limits" />
       </div>
       <SelectField label="Primary timezone band" options={TIMEZONE_OPTIONS} value={draft.timezone} onChange={(v) => patch('timezone', v)} />
       {draft.timezone === 'other' ? (
-        <TextField label="Timezone detail" value={draft.timezoneOtherNote} onChange={(e) => patch('timezoneOtherNote', e.target.value)} hint="IANA zone or offset, e.g. America/Chicago" />
+        <TextField label="Timezone detail" exampleKey="timezoneOtherNote" seniorityTarget={st} value={draft.timezoneOtherNote} onChange={(e) => patch('timezoneOtherNote', e.target.value)} hint="IANA zone or offset, e.g. America/Chicago" />
       ) : null}
       <div className="grid gap-4 sm:grid-cols-3">
-        <TextField label="LinkedIn URL" type="url" optional value={draft.linkedInUrl} onChange={(e) => patch('linkedInUrl', e.target.value)} />
-        <TextField label="Portfolio / personal site" type="url" optional value={draft.portfolioUrl} onChange={(e) => patch('portfolioUrl', e.target.value)} />
-        <TextField label="GitHub (or main code host)" type="url" optional value={draft.githubUrl} onChange={(e) => patch('githubUrl', e.target.value)} />
+        <TextField label="LinkedIn URL" type="url" optional exampleKey="linkedInUrl" seniorityTarget={st} value={draft.linkedInUrl} onChange={(e) => patch('linkedInUrl', e.target.value)} />
+        <TextField label="Portfolio / personal site" type="url" optional exampleKey="portfolioUrl" seniorityTarget={st} value={draft.portfolioUrl} onChange={(e) => patch('portfolioUrl', e.target.value)} />
+        <TextField label="GitHub (or main code host)" type="url" optional exampleKey="githubUrl" seniorityTarget={st} value={draft.githubUrl} onChange={(e) => patch('githubUrl', e.target.value)} />
       </div>
-      <LongField label="Other links worth citing" optional className="min-h-[80px]" value={draft.otherLinks} onChange={(e) => patch('otherLinks', e.target.value)} />
+      <LongField label="Other links worth citing" optional exampleKey="otherLinks" seniorityTarget={st} className="min-h-[80px]" value={draft.otherLinks} onChange={(e) => patch('otherLinks', e.target.value)} />
     </div>
   )
 }
@@ -369,17 +426,25 @@ function StepTargets({
   patch: <K extends keyof ApplicantProfileDraft>(key: K, value: ApplicantProfileDraft[K]) => void
   setDraft: React.Dispatch<React.SetStateAction<ApplicantProfileDraft | null>>
 }) {
+  const st = draft.seniorityTarget
   return (
     <div className="space-y-5">
       <div className="grid gap-4 sm:grid-cols-3">
         <SelectField label="Years of experience" options={YEARS_EXPERIENCE_OPTIONS} value={draft.yearsExperience} onChange={(v) => patch('yearsExperience', v)} />
-        <SelectField label="Seniority target" options={SENIORITY_OPTIONS} value={draft.seniorityTarget} onChange={(v) => patch('seniorityTarget', v)} />
+        <SelectField label="Seniority target" options={SENIORITY_OPTIONS} value={draft.seniorityTarget} onChange={(v) => patch('seniorityTarget', v)} hint="Junior is fine — we match at or above your target." />
         <SelectField label="Primary discipline" options={DISCIPLINE_OPTIONS} value={draft.primaryDiscipline} onChange={(v) => patch('primaryDiscipline', v)} />
       </div>
+      <SelectField
+        label="Paid software work experience"
+        options={PAID_WORK_EXPERIENCE_OPTIONS}
+        value={draft.paidWorkExperience}
+        onChange={(v) => patch('paidWorkExperience', v as ApplicantProfileDraft['paidWorkExperience'])}
+        hint="This shapes the rest of the wizard and how we format your resume."
+      />
       {draft.primaryDiscipline === 'other' ? (
-        <TextField label="Describe discipline" value={draft.disciplineOtherNote} onChange={(e) => patch('disciplineOtherNote', e.target.value)} />
+        <TextField label="Describe discipline" exampleKey="disciplineOtherNote" seniorityTarget={st} value={draft.disciplineOtherNote} onChange={(e) => patch('disciplineOtherNote', e.target.value)} />
       ) : null}
-      <LongField label="Role titles, scope, and nuance" value={draft.targetRolesNarrative} onChange={(e) => patch('targetRolesNarrative', e.target.value)} hint="IC vs manager, domain (e.g. billing, growth)" />
+      <LongField label="Role titles, scope, and nuance" exampleKey="targetRolesNarrative" seniorityTarget={st} value={draft.targetRolesNarrative} onChange={(e) => patch('targetRolesNarrative', e.target.value)} hint="IC vs manager, domain (e.g. billing, growth)" />
       <CheckboxGrid
         title="Industries or problem domains of interest"
         hint="Select all that apply"
@@ -387,8 +452,8 @@ function StepTargets({
         selected={draft.selectedIndustrySlugs}
         onToggle={(slug, on) => setDraft((d) => (d ? { ...d, selectedIndustrySlugs: toggleSlug(d.selectedIndustrySlugs, slug, on) } : d))}
       />
-      <LongField label="Industry notes" optional value={draft.industryOtherNote} onChange={(e) => patch('industryOtherNote', e.target.value)} hint='Elaborate on "other" or sub-niches' />
-      <LongField label="Companies or products you admire" optional value={draft.companiesYouAdmire} onChange={(e) => patch('companiesYouAdmire', e.target.value)} />
+      <LongField label="Industry notes" optional exampleKey="industryOtherNote" seniorityTarget={st} value={draft.industryOtherNote} onChange={(e) => patch('industryOtherNote', e.target.value)} hint='Elaborate on "other" or sub-niches' />
+      <LongField label="Companies or products you admire" optional exampleKey="companiesYouAdmire" seniorityTarget={st} value={draft.companiesYouAdmire} onChange={(e) => patch('companiesYouAdmire', e.target.value)} />
     </div>
   )
 }
@@ -400,12 +465,91 @@ function StepExperience({
   draft: ApplicantProfileDraft
   patch: <K extends keyof ApplicantProfileDraft>(key: K, value: ApplicantProfileDraft[K]) => void
 }) {
+  const transitional = deriveProfileMode(draft) === 'transitional'
+  const st = draft.seniorityTarget
+  const narrativeLabel = transitional ? 'What you have done so far' : 'Your career story, as you would tell a peer'
   return (
     <div className="space-y-5">
-      <LongField label="Your career story, as you would tell a peer" className="min-h-[180px]" value={draft.honestCareerNarrative} onChange={(e) => patch('honestCareerNarrative', e.target.value)} />
-      <LongField label="Proudest wins (with metrics if you have them)" className="min-h-[160px]" value={draft.proudestProfessionalWins} onChange={(e) => patch('proudestProfessionalWins', e.target.value)} />
+      <LongField
+        label={narrativeLabel}
+        exampleKey="honestCareerNarrative"
+        questionOverride={narrativeLabel}
+        seniorityTarget={st}
+        className="min-h-[180px]"
+        value={draft.honestCareerNarrative}
+        onChange={(e) => patch('honestCareerNarrative', e.target.value)}
+      />
+      {!transitional ? (
+        <LongField label="Proudest wins (with metrics if you have them)" exampleKey="proudestProfessionalWins" seniorityTarget={st} className="min-h-[160px]" value={draft.proudestProfessionalWins} onChange={(e) => patch('proudestProfessionalWins', e.target.value)} />
+      ) : null}
       <BooleanField label="Comfortable discussing failures or setbacks" hint="If unchecked, the AI steers away from failure-focused prompts" checked={draft.comfortableSharingFailureStories} onChange={(v) => patch('comfortableSharingFailureStories', v)} />
-      <LongField label="Non-traditional path, gaps, or context" optional className="min-h-[120px]" value={draft.gapsOrNonTraditionalPath} onChange={(e) => patch('gapsOrNonTraditionalPath', e.target.value)} />
+      <LongField label="Non-traditional path, gaps, or context" optional exampleKey="gapsOrNonTraditionalPath" seniorityTarget={st} className="min-h-[120px]" value={draft.gapsOrNonTraditionalPath} onChange={(e) => patch('gapsOrNonTraditionalPath', e.target.value)} />
+    </div>
+  )
+}
+
+function StepEducation({
+  draft,
+  patch,
+}: {
+  draft: ApplicantProfileDraft
+  patch: <K extends keyof ApplicantProfileDraft>(key: K, value: ApplicantProfileDraft[K]) => void
+}) {
+  const st = draft.seniorityTarget
+  return (
+    <div className="space-y-5">
+      <TextField label="School or program" exampleKey="schoolName" seniorityTarget={st} value={draft.schoolName} onChange={(e) => patch('schoolName', e.target.value)} />
+      <TextField label="Graduation (expected or completed)" optional exampleKey="expectedGraduation" seniorityTarget={st} value={draft.expectedGraduation} onChange={(e) => patch('expectedGraduation', e.target.value)} hint="e.g. May 2026 or 2024" />
+      <SelectField label="Highest formal education" options={EDUCATION_OPTIONS} value={draft.highestEducation} onChange={(v) => patch('highestEducation', v)} />
+      <LongField label="Education details" optional exampleKey="educationDetails" seniorityTarget={st} className="min-h-[100px]" value={draft.educationDetails} onChange={(e) => patch('educationDetails', e.target.value)} hint="Degree, major, honors, bootcamp, certifications" />
+      <LongField label="Relevant coursework" optional exampleKey="courseworkNote" seniorityTarget={st} className="min-h-[100px]" value={draft.courseworkNote} onChange={(e) => patch('courseworkNote', e.target.value)} hint="Courses where you built something substantial" />
+    </div>
+  )
+}
+
+function StepWorkHistory({
+  draft,
+  updateWorkEntry,
+  addWorkEntry,
+  removeWorkEntry,
+}: {
+  draft: ApplicantProfileDraft
+  updateWorkEntry: (id: string, partial: Partial<WorkEntry>) => void
+  addWorkEntry: () => void
+  removeWorkEntry: (id: string) => void
+}) {
+  const st = draft.seniorityTarget
+  return (
+    <div className="space-y-5">
+      <p className="text-sm text-muted-foreground">
+        Add internships, co-ops, or short freelance roles. These may appear as a small experience block on tailored resumes.
+      </p>
+      {draft.workEntries.map((entry, index) => (
+        <fieldset key={entry.id} className="rounded-md border p-5">
+          <legend className="select-text px-1 text-sm font-medium">Role {index + 1}</legend>
+          <div className="mt-3 flex flex-col gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField label="Company" exampleKey="workCompany" seniorityTarget={st} value={entry.company} onChange={(e) => updateWorkEntry(entry.id, { company: e.target.value })} />
+              <TextField label="Role title" exampleKey="workRole" seniorityTarget={st} value={entry.role} onChange={(e) => updateWorkEntry(entry.id, { role: e.target.value })} />
+            </div>
+            <SelectField label="Type" options={WORK_ENTRY_TYPE_OPTIONS} value={entry.employmentType} onChange={(v) => updateWorkEntry(entry.id, { employmentType: v })} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField label="Start (month/year)" exampleKey="workStartDate" seniorityTarget={st} value={entry.startDate} onChange={(e) => updateWorkEntry(entry.id, { startDate: e.target.value })} />
+              <TextField label="End (month/year)" optional exampleKey="workEndDate" seniorityTarget={st} value={entry.endDate} onChange={(e) => updateWorkEntry(entry.id, { endDate: e.target.value })} />
+            </div>
+            <BooleanField label="Currently here" checked={entry.isCurrent} onChange={(v) => updateWorkEntry(entry.id, { isCurrent: v })} />
+            <LongField label="What you did (factual bullets or notes)" exampleKey="workSummaryBullets" seniorityTarget={st} className="min-h-[120px]" value={entry.summaryBullets} onChange={(e) => updateWorkEntry(entry.id, { summaryBullets: e.target.value })} />
+            <div className="flex justify-end">
+              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" disabled={draft.workEntries.length <= 1} onClick={() => removeWorkEntry(entry.id)}>
+                Remove role
+              </Button>
+            </div>
+          </div>
+        </fieldset>
+      ))}
+      <Button variant="outline" onClick={addWorkEntry} className="w-full border-dashed">
+        + Add another role
+      </Button>
     </div>
   )
 }
@@ -476,20 +620,26 @@ function StepResumeUpload({
   }
 
   const busy = parsing || uploading
+  const optional = deriveProfileMode(draft) !== 'experienced'
+  const hasPdf = Boolean(draft.resumePdfUrl?.trim())
 
   return (
     <div className="space-y-5">
       <p className="text-sm text-muted-foreground">
-        Upload your current resume.
-        {draft.resumePlainText.trim() && draft.resumePdfUrl ? (
-          <>
-            {' '}
-            <a href={draft.resumePdfUrl} target="_blank" rel="noreferrer" className="text-primary underline-offset-4 hover:underline">
-              View current PDF
-            </a>
-          </>
-        ) : null}
+        {optional
+          ? 'Optional — we build a resume from your projects and education if you skip this.'
+          : 'Upload your current resume.'}
       </p>
+
+      {hasPdf ? (
+        <div className="overflow-hidden rounded-md border bg-muted/20">
+          <iframe
+            src={draft.resumePdfUrl}
+            title="Your uploaded resume"
+            className="h-[min(560px,70vh)] w-full bg-white"
+          />
+        </div>
+      ) : null}
 
       <div
         className={`relative flex cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed p-10 transition-all ${
@@ -520,7 +670,7 @@ function StepResumeUpload({
           <>
             <Upload className="mb-3 size-8 text-muted-foreground" />
             <span className="text-sm font-medium text-muted-foreground">
-              Upload your current resume
+              {hasPdf ? 'Upload a new resume' : 'Upload your current resume'}
             </span>
             <span className="mt-1 text-xs text-muted-foreground/60">PDF only</span>
           </>
@@ -544,14 +694,28 @@ function StepSkills({
   patch: <K extends keyof ApplicantProfileDraft>(key: K, value: ApplicantProfileDraft[K]) => void
   setDraft: React.Dispatch<React.SetStateAction<ApplicantProfileDraft | null>>
 }) {
+  const early = deriveProfileMode(draft) === 'early'
+  const st = draft.seniorityTarget
   return (
     <div className="space-y-5">
-      <LongField label="Core strengths in your own words" className="min-h-[140px]" value={draft.skillsCoreNarrative} onChange={(e) => patch('skillsCoreNarrative', e.target.value)} hint="What you would defend in a senior interview" />
+      <LongField
+        label="Core strengths in your own words"
+        exampleKey="skillsCoreNarrative"
+        seniorityTarget={st}
+        className="min-h-[140px]"
+        value={draft.skillsCoreNarrative}
+        onChange={(e) => patch('skillsCoreNarrative', e.target.value)}
+        hint={early ? 'What you have actually built with — from projects and coursework' : 'What you would defend in a senior interview'}
+      />
       <CheckboxGrid title="Areas you are ramping or want more exposure to" entries={RAMP_AREA_SLUGS} selected={draft.selectedRampAreaSlugs} onToggle={(slug, on) => setDraft((d) => (d ? { ...d, selectedRampAreaSlugs: toggleSlug(d.selectedRampAreaSlugs, slug, on) } : d))} />
       <CheckboxGrid title="Tools & platforms you have used meaningfully" entries={TOOL_SLUGS} selected={draft.selectedToolSlugs} onToggle={(slug, on) => setDraft((d) => (d ? { ...d, selectedToolSlugs: toggleSlug(d.selectedToolSlugs, slug, on) } : d))} />
-      <LongField label="Tools / stack notes" optional className="min-h-[80px]" value={draft.toolsOtherNote} onChange={(e) => patch('toolsOtherNote', e.target.value)} hint="Vendor-specific services or niche tools" />
-      <SelectField label="Highest formal education" options={EDUCATION_OPTIONS} value={draft.highestEducation} onChange={(v) => patch('highestEducation', v)} />
-      <LongField label="Education & certifications details" optional className="min-h-[100px]" value={draft.educationDetails} onChange={(e) => patch('educationDetails', e.target.value)} />
+      <LongField label="Tools / stack notes" optional exampleKey="toolsOtherNote" seniorityTarget={st} className="min-h-[80px]" value={draft.toolsOtherNote} onChange={(e) => patch('toolsOtherNote', e.target.value)} hint="Vendor-specific services or niche tools" />
+      {!early ? (
+        <>
+          <SelectField label="Highest formal education" options={EDUCATION_OPTIONS} value={draft.highestEducation} onChange={(v) => patch('highestEducation', v)} />
+          <LongField label="Education & certifications details" optional exampleKey="educationDetails" seniorityTarget={st} className="min-h-[100px]" value={draft.educationDetails} onChange={(e) => patch('educationDetails', e.target.value)} />
+        </>
+      ) : null}
     </div>
   )
 }
@@ -567,8 +731,13 @@ function StepProjects({
   addProject: () => void
   removeProject: (id: string) => void
 }) {
+  const minProjects = minProjectsRequired(deriveProfileMode(draft))
+  const st = draft.seniorityTarget
   return (
     <div className="space-y-5">
+      <p className="text-sm text-muted-foreground">
+        Add at least {minProjects} project{minProjects > 1 ? 's' : ''} with a name and summary. These power matching and tailored resumes.
+      </p>
       {draft.projects.map((project, index) => (
         <fieldset
           key={project.id}
@@ -578,18 +747,18 @@ function StepProjects({
           <div className="mt-3 flex flex-col gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <SelectField label="Project type" options={PROJECT_KIND_OPTIONS} value={project.kind} onChange={(v) => updateProject(project.id, { kind: v })} />
-              <TextField label="Name" value={project.title} onChange={(e) => updateProject(project.id, { title: e.target.value })} />
+              <TextField label="Name" exampleKey="projectTitle" seniorityTarget={st} value={project.title} onChange={(e) => updateProject(project.id, { title: e.target.value })} />
             </div>
-            <LongField label="What you built and your role" className="min-h-[120px]" value={project.summary} onChange={(e) => updateProject(project.id, { summary: e.target.value })} />
+            <LongField label="What you built and your role" exampleKey="projectSummary" seniorityTarget={st} className="min-h-[120px]" value={project.summary} onChange={(e) => updateProject(project.id, { summary: e.target.value })} />
             <SelectField label="Primary technology / language" options={PROJECT_PRIMARY_TECH_OPTIONS} value={project.primaryTechSlug} onChange={(v) => updateProject(project.id, { primaryTechSlug: v })} />
-            <LongField label="Stack details" optional className="min-h-[80px]" value={project.techStackExtra} onChange={(e) => updateProject(project.id, { techStackExtra: e.target.value })} hint="Libraries, infra, beyond the primary pick" />
+            <LongField label="Stack details" optional exampleKey="projectTechStackExtra" seniorityTarget={st} className="min-h-[80px]" value={project.techStackExtra} onChange={(e) => updateProject(project.id, { techStackExtra: e.target.value })} hint="Libraries, infra, beyond the primary pick" />
             <div className="grid gap-4 sm:grid-cols-2">
-              <LongField label="Impact or proof" optional value={project.impactMetrics} onChange={(e) => updateProject(project.id, { impactMetrics: e.target.value })} />
-              <TextField label="Link" type="url" optional value={project.link} onChange={(e) => updateProject(project.id, { link: e.target.value })} />
+              <LongField label="Impact or proof" optional exampleKey="projectImpactMetrics" seniorityTarget={st} value={project.impactMetrics} onChange={(e) => updateProject(project.id, { impactMetrics: e.target.value })} />
+              <TextField label="Link" type="url" optional exampleKey="projectLink" seniorityTarget={st} value={project.link} onChange={(e) => updateProject(project.id, { link: e.target.value })} />
             </div>
             <BooleanField label="Shipped to real users" checked={project.shippedToUsers} onChange={(v) => updateProject(project.id, { shippedToUsers: v })} />
             <div className="flex justify-end">
-              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" disabled={draft.projects.length <= 1} onClick={() => removeProject(project.id)}>
+              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" disabled={draft.projects.length <= minProjects} onClick={() => removeProject(project.id)}>
                 Remove project
               </Button>
             </div>
@@ -610,27 +779,47 @@ function StepStories({
   draft: ApplicantProfileDraft
   patch: <K extends keyof ApplicantProfileDraft>(key: K, value: ApplicantProfileDraft[K]) => void
 }) {
-  const stories: Array<{ key: keyof ApplicantProfileDraft; label: string; optional?: boolean }> = [
-    { key: 'storyHardestTechnicalChallenge', label: 'Hardest technical problem you have solved' },
-    { key: 'storyDisagreementOrConflict', label: 'A disagreement with a teammate or manager' },
-    { key: 'storyBiggestMistake', label: 'A meaningful mistake or failure' },
-    { key: 'storyLeadingWithoutAuthority', label: 'Leading or influencing without formal authority' },
-    { key: 'storyTightDeadline', label: 'Shipping under a tight deadline' },
-    { key: 'storyConflictingPriorities', label: 'Conflicting priorities from stakeholders' },
-    { key: 'storyProcessImprovement', label: 'A process or system you improved measurably' },
-    { key: 'storyDifficultFeedback', label: 'Receiving difficult or surprising feedback' },
-    { key: 'storyMentoringTeaching', label: 'Mentoring, teaching, or onboarding others', optional: true },
-    { key: 'storyCrossFunctionalCollaboration', label: 'Cross-functional work (PM, design, data\u2026)' },
-    { key: 'storyAmbiguousProblem', label: 'A highly ambiguous problem' },
-    { key: 'storyEthicalOrRiskTradeoff', label: 'An ethical dilemma or risk tradeoff', optional: true },
-  ]
+  const early = deriveProfileMode(draft) === 'early'
+  const stories: Array<{ key: keyof ApplicantProfileDraft; label: string; optional?: boolean }> = early
+    ? [
+        { key: 'storyHardestTechnicalChallenge', label: 'Hardest technical problem (project, class, or internship ok)' },
+        { key: 'storyDisagreementOrConflict', label: 'Working with others — team project, pair programming, or feedback', optional: true },
+        { key: 'storyBiggestMistake', label: 'Something you would do differently next time', optional: true },
+        { key: 'storyTightDeadline', label: 'Shipping or learning under a tight deadline', optional: true },
+      ]
+    : [
+        { key: 'storyHardestTechnicalChallenge', label: 'Hardest technical problem you have solved' },
+        { key: 'storyDisagreementOrConflict', label: 'A disagreement with a teammate or manager' },
+        { key: 'storyBiggestMistake', label: 'A meaningful mistake or failure' },
+        { key: 'storyLeadingWithoutAuthority', label: 'Leading or influencing without formal authority', optional: true },
+        { key: 'storyTightDeadline', label: 'Shipping under a tight deadline', optional: true },
+        { key: 'storyConflictingPriorities', label: 'Conflicting priorities from stakeholders', optional: true },
+        { key: 'storyProcessImprovement', label: 'A process or system you improved measurably', optional: true },
+        { key: 'storyDifficultFeedback', label: 'Receiving difficult or surprising feedback', optional: true },
+        { key: 'storyMentoringTeaching', label: 'Mentoring, teaching, or onboarding others', optional: true },
+        { key: 'storyCrossFunctionalCollaboration', label: 'Cross-functional work (PM, design, data\u2026)', optional: true },
+        { key: 'storyAmbiguousProblem', label: 'A highly ambiguous problem', optional: true },
+        { key: 'storyEthicalOrRiskTradeoff', label: 'An ethical dilemma or risk tradeoff', optional: true },
+      ]
   return (
     <div className="space-y-5">
       <p className="text-sm text-muted-foreground">
-        These stay as narrative text so the model can adapt tone per posting without losing your facts.
+        {early
+          ? 'Project and learning stories are enough — we adapt tone per role without changing your facts.'
+          : 'These stay as narrative text so the model can adapt tone per posting without losing your facts.'}
       </p>
       {stories.map((s) => (
-        <LongField key={s.key} label={s.label} optional={s.optional} className="min-h-[120px]" value={draft[s.key] as string} onChange={(e) => patch(s.key, e.target.value)} />
+        <LongField
+          key={s.key}
+          label={s.label}
+          optional={s.optional}
+          exampleKey={s.key as FieldExampleKey}
+          questionOverride={s.label}
+          seniorityTarget={draft.seniorityTarget}
+          className="min-h-[120px]"
+          value={draft[s.key] as string}
+          onChange={(e) => patch(s.key, e.target.value)}
+        />
       ))}
     </div>
   )
@@ -645,14 +834,22 @@ function StepGoals({
   patch: <K extends keyof ApplicantProfileDraft>(key: K, value: ApplicantProfileDraft[K]) => void
   setDraft: React.Dispatch<React.SetStateAction<ApplicantProfileDraft | null>>
 }) {
+  const early = deriveProfileMode(draft) !== 'experienced'
+  const motivationEntries = early ? EARLY_MOTIVATION_SLUGS : MOTIVATION_SLUGS
+  const st = draft.seniorityTarget
   return (
     <div className="space-y-5">
-      <CheckboxGrid title="Why you are open to a move" entries={MOTIVATION_SLUGS} selected={draft.selectedMotivationSlugs} onToggle={(slug, on) => setDraft((d) => (d ? { ...d, selectedMotivationSlugs: toggleSlug(d.selectedMotivationSlugs, slug, on) } : d))} />
-      <LongField label="Motivation notes" optional className="min-h-[80px]" value={draft.motivationsOtherNote} onChange={(e) => patch('motivationsOtherNote', e.target.value)} />
+      <CheckboxGrid
+        title={early ? 'What you are looking for' : 'Why you are open to a move'}
+        entries={motivationEntries}
+        selected={draft.selectedMotivationSlugs}
+        onToggle={(slug, on) => setDraft((d) => (d ? { ...d, selectedMotivationSlugs: toggleSlug(d.selectedMotivationSlugs, slug, on) } : d))}
+      />
+      <LongField label="Motivation notes" optional exampleKey="motivationsOtherNote" seniorityTarget={st} className="min-h-[80px]" value={draft.motivationsOtherNote} onChange={(e) => patch('motivationsOtherNote', e.target.value)} />
       <CheckboxGrid title="What you want more of in the next role" entries={NEXT_ROLE_SLUGS} selected={draft.selectedNextRoleDesireSlugs} onToggle={(slug, on) => setDraft((d) => (d ? { ...d, selectedNextRoleDesireSlugs: toggleSlug(d.selectedNextRoleDesireSlugs, slug, on) } : d))} />
-      <LongField label="Goals notes" optional className="min-h-[80px]" value={draft.whatYouWantNextNote} onChange={(e) => patch('whatYouWantNextNote', e.target.value)} />
+      <LongField label="Goals notes" optional exampleKey="whatYouWantNextNote" seniorityTarget={st} className="min-h-[80px]" value={draft.whatYouWantNextNote} onChange={(e) => patch('whatYouWantNextNote', e.target.value)} />
       <CheckboxGrid title="Hard boundaries" hint="Select any that apply" entries={DEALBREAKER_SLUGS} selected={draft.selectedDealbreakerSlugs} onToggle={(slug, on) => setDraft((d) => (d ? { ...d, selectedDealbreakerSlugs: toggleSlug(d.selectedDealbreakerSlugs, slug, on) } : d))} />
-      <LongField label="Deal-breaker notes" optional className="min-h-[80px]" value={draft.dealBreakersOtherNote} onChange={(e) => patch('dealBreakersOtherNote', e.target.value)} />
+      <LongField label="Deal-breaker notes" optional exampleKey="dealBreakersOtherNote" seniorityTarget={st} className="min-h-[80px]" value={draft.dealBreakersOtherNote} onChange={(e) => patch('dealBreakersOtherNote', e.target.value)} />
     </div>
   )
 }
@@ -664,6 +861,7 @@ function StepWorkStyle({
   draft: ApplicantProfileDraft
   patch: <K extends keyof ApplicantProfileDraft>(key: K, value: ApplicantProfileDraft[K]) => void
 }) {
+  const st = draft.seniorityTarget
   return (
     <div className="space-y-5">
       <div className="grid gap-4 sm:grid-cols-3">
@@ -671,7 +869,7 @@ function StepWorkStyle({
         <SelectField label="Team size you thrive in" options={TEAM_SIZE_OPTIONS} value={draft.teamSizePreference} onChange={(v) => patch('teamSizePreference', v)} />
         <SelectField label="Compensation band (USD equiv)" options={COMPENSATION_BAND_OPTIONS} value={draft.compensationBand} onChange={(v) => patch('compensationBand', v)} />
       </div>
-      <LongField label="Compensation context" optional className="min-h-[80px]" value={draft.compensationExtraNote} onChange={(e) => patch('compensationExtraNote', e.target.value)} hint="Equity vs cash, geo, seniority negotiation" />
+      <LongField label="Compensation context" optional exampleKey="compensationExtraNote" seniorityTarget={st} className="min-h-[80px]" value={draft.compensationExtraNote} onChange={(e) => patch('compensationExtraNote', e.target.value)} hint="Equity vs cash, geo, seniority negotiation" />
       <div className="grid gap-3 sm:grid-cols-3">
         <BooleanField label="Open to meaningful equity" checked={draft.openToEquity} onChange={(v) => patch('openToEquity', v)} />
         <BooleanField label="Open to contract / C2C" checked={draft.openToContract} onChange={(v) => patch('openToContract', v)} />
@@ -679,7 +877,7 @@ function StepWorkStyle({
       </div>
       <SelectField label="Work authorization" options={VISA_STATUS_OPTIONS} value={draft.visaStatus} onChange={(v) => patch('visaStatus', v)} />
       <BooleanField label="I will need visa sponsorship" checked={draft.needsVisaSponsorship} onChange={(v) => patch('needsVisaSponsorship', v)} />
-      <LongField label="Work authorization notes" optional className="min-h-[80px]" value={draft.workAuthOtherNote} onChange={(e) => patch('workAuthOtherNote', e.target.value)} />
+      <LongField label="Work authorization notes" optional exampleKey="workAuthOtherNote" seniorityTarget={st} className="min-h-[80px]" value={draft.workAuthOtherNote} onChange={(e) => patch('workAuthOtherNote', e.target.value)} />
     </div>
   )
 }
@@ -775,7 +973,20 @@ export function ProfileWizard() {
   }
 
   function removeProject(id: string) {
-    setDraft((d) => (d ? { ...d, projects: d.projects.length <= 1 ? d.projects : d.projects.filter((p) => p.id !== id) } : d))
+    const min = minProjectsRequired(deriveProfileMode(draft!))
+    setDraft((d) => (d ? { ...d, projects: d.projects.length <= min ? d.projects : d.projects.filter((p) => p.id !== id) } : d))
+  }
+
+  function updateWorkEntry(id: string, partial: Partial<WorkEntry>) {
+    setDraft((d) => (d ? { ...d, workEntries: d.workEntries.map((e) => (e.id === id ? { ...e, ...partial } : e)) } : d))
+  }
+
+  function addWorkEntry() {
+    setDraft((d) => (d ? { ...d, workEntries: [...d.workEntries, newWorkEntry()] } : d))
+  }
+
+  function removeWorkEntry(id: string) {
+    setDraft((d) => (d ? { ...d, workEntries: d.workEntries.length <= 1 ? d.workEntries : d.workEntries.filter((e) => e.id !== id) } : d))
   }
 
   async function handleSubmit() {
@@ -822,17 +1033,71 @@ export function ProfileWizard() {
     return <p className="text-sm text-muted-foreground">No profile data yet.</p>
   }
 
-  const currentStep = STEPS[step]
-  const isFirst = step === 0
-  const isLast = step === STEPS.length - 1
+  const steps = getWizardSteps(draft)
+  const safeStep = Math.min(step, steps.length - 1)
+  const currentStep = steps[safeStep]
+  const profile = draft
+  const isFirst = safeStep === 0
+  const isLast = safeStep === steps.length - 1
   const allComplete = isApplicantProfileComplete(draft)
 
   function goNext() {
-    if (step < STEPS.length - 1) setStep(step + 1)
+    if (safeStep < steps.length - 1) setStep(safeStep + 1)
   }
 
   function goPrev() {
-    if (step > 0) setStep(step - 1)
+    if (safeStep > 0) setStep(safeStep - 1)
+  }
+
+  function renderStepContent() {
+    switch (currentStep.id) {
+      case 'basics':
+        return <StepBasics draft={profile} patch={patch} />
+      case 'targets':
+        return <StepTargets draft={profile} patch={patch} setDraft={setDraft} />
+      case 'education':
+        return <StepEducation draft={profile} patch={patch} />
+      case 'work-history':
+        return (
+          <StepWorkHistory
+            draft={profile}
+            updateWorkEntry={updateWorkEntry}
+            addWorkEntry={addWorkEntry}
+            removeWorkEntry={removeWorkEntry}
+          />
+        )
+      case 'experience':
+        return <StepExperience draft={profile} patch={patch} />
+      case 'resume-upload':
+        return (
+          <StepResumeUpload
+            draft={profile}
+            onResumeSaved={(updates) => {
+              setDraft((d) => (d ? { ...d, ...updates } : d))
+            }}
+            onComplete={() => { setStep(safeStep + 1) }}
+          />
+        )
+      case 'skills':
+        return <StepSkills draft={profile} patch={patch} setDraft={setDraft} />
+      case 'projects':
+        return (
+          <StepProjects
+            draft={profile}
+            updateProject={updateProject}
+            addProject={addProject}
+            removeProject={removeProject}
+          />
+        )
+      case 'stories':
+        return <StepStories draft={profile} patch={patch} />
+      case 'goals':
+        return <StepGoals draft={profile} patch={patch} setDraft={setDraft} />
+      case 'work-style':
+        return <StepWorkStyle draft={profile} patch={patch} />
+      default:
+        return null
+    }
   }
 
   return (
@@ -854,7 +1119,7 @@ export function ProfileWizard() {
             {currentStep.title}
           </h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Step {step + 1} of {STEPS.length}
+            Step {safeStep + 1} of {steps.length}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -867,26 +1132,10 @@ export function ProfileWizard() {
         </div>
       </div>
 
-      <ProgressBar current={step} draft={draft} onStepClick={(i) => setStep(i)} />
+      <ProgressBar steps={steps} current={safeStep} draft={draft} onStepClick={(i) => setStep(i)} />
 
       <div className="rounded-md border bg-card p-4 sm:p-6">
-        {step === 0 && <StepBasics draft={draft} patch={patch} />}
-        {step === 1 && <StepTargets draft={draft} patch={patch} setDraft={setDraft} />}
-        {step === 2 && <StepExperience draft={draft} patch={patch} />}
-        {step === 3 && (
-          <StepResumeUpload
-            draft={draft}
-            onResumeSaved={(updates) => {
-              setDraft((d) => (d ? { ...d, ...updates } : d))
-            }}
-            onComplete={() => { setStep(step + 1) }}
-          />
-        )}
-        {step === 4 && <StepSkills draft={draft} patch={patch} setDraft={setDraft} />}
-        {step === 5 && <StepProjects draft={draft} updateProject={updateProject} addProject={addProject} removeProject={removeProject} />}
-        {step === 6 && <StepStories draft={draft} patch={patch} />}
-        {step === 7 && <StepGoals draft={draft} patch={patch} setDraft={setDraft} />}
-        {step === 8 && <StepWorkStyle draft={draft} patch={patch} />}
+        {renderStepContent()}
       </div>
 
       <div className="flex items-center justify-between gap-3">

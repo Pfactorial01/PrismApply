@@ -7,6 +7,7 @@ import { authMeQueryKey, fetchAuthMe } from '@/lib/auth'
 import { getProfileFirstName } from '@/lib/displayName'
 import { applicantProfileQueryKeyFor, fetchApplicantProfile } from '@/lib/profileApi'
 import { applicationsQueryKey, fetchApplications } from '@/lib/applicationsApi'
+import { isProfileReadyForApp } from '@/features/applicant-profile/profileCompletion'
 import { interviewPrepLine } from '@/lib/copy'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -34,7 +35,7 @@ export function OverviewPage() {
   })
 
   useEffect(() => {
-    if (profile && !profile.resumePlainText.trim()) {
+    if (profile && !isProfileReadyForApp(profile)) {
       void navigate({ to: '/profile' })
     }
   }, [profile, navigate])
@@ -51,7 +52,7 @@ export function OverviewPage() {
     }
   }, [apps])
 
-  if (!profile || !profile.resumePlainText.trim()) return null
+  if (!profile || !isProfileReadyForApp(profile)) return null
 
   return (
     <div className="space-y-6">

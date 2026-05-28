@@ -17,6 +17,7 @@ import { SignupPage } from './pages/SignupPage'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { authMeQueryKey, fetchAuthMe } from './lib/auth'
 import { applicantProfileQueryKeyFor, fetchApplicantProfile } from './lib/profileApi'
+import { isProfileReadyForApp } from './features/applicant-profile/profileCompletion'
 
 async function ensureSessionUser(queryClient: QueryClient) {
   return queryClient.ensureQueryData({
@@ -67,7 +68,7 @@ const indexRoute = createRoute({
   path: '/',
   beforeLoad: async ({ context }) => {
     const profile = await ensureProfile(context.queryClient)
-    if (!profile.resumePlainText.trim()) {
+    if (!isProfileReadyForApp(profile)) {
       throw redirect({ to: '/profile' })
     }
   },
@@ -79,7 +80,7 @@ const applicationsRoute = createRoute({
   path: '/applications',
   beforeLoad: async ({ context }) => {
     const profile = await ensureProfile(context.queryClient)
-    if (!profile.resumePlainText.trim()) {
+    if (!isProfileReadyForApp(profile)) {
       throw redirect({ to: '/profile' })
     }
   },
@@ -91,7 +92,7 @@ const applicationDetailRoute = createRoute({
   path: '/applications/$id',
   beforeLoad: async ({ context }) => {
     const profile = await ensureProfile(context.queryClient)
-    if (!profile.resumePlainText.trim()) {
+    if (!isProfileReadyForApp(profile)) {
       throw redirect({ to: '/profile' })
     }
   },
@@ -109,7 +110,7 @@ const settingsRoute = createRoute({
   path: '/settings',
   beforeLoad: async ({ context }) => {
     const profile = await ensureProfile(context.queryClient)
-    if (!profile.resumePlainText.trim()) {
+    if (!isProfileReadyForApp(profile)) {
       throw redirect({ to: '/profile' })
     }
   },

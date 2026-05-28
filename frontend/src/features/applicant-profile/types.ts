@@ -1,3 +1,18 @@
+export type PaidWorkExperience = 'none' | 'internship_only' | 'full_time' | ''
+export type ProfileMode = 'early' | 'transitional' | 'experienced'
+export type ResumeLayout = 'project_only' | 'hybrid' | 'employment_led' | ''
+
+export type WorkEntry = {
+  id: string
+  company: string
+  role: string
+  startDate: string
+  endDate: string
+  isCurrent: boolean
+  employmentType: string
+  summaryBullets: string
+}
+
 export type ProjectEntry = {
   id: string
   kind: string
@@ -17,6 +32,7 @@ export type ApplicantProfileDraft = {
   preferredName: string
   headline: string
   currentCompany: string
+  currentStatus: string
   region: string
   cityOrDetail: string
   timezone: string
@@ -28,6 +44,7 @@ export type ApplicantProfileDraft = {
 
   yearsExperience: string
   seniorityTarget: string
+  paidWorkExperience: PaidWorkExperience
   primaryDiscipline: string
   disciplineOtherNote: string
   targetRolesNarrative: string
@@ -48,8 +65,16 @@ export type ApplicantProfileDraft = {
   toolsOtherNote: string
   highestEducation: string
   educationDetails: string
+  schoolName: string
+  expectedGraduation: string
+  courseworkNote: string
+
+  workEntries: WorkEntry[]
 
   projects: ProjectEntry[]
+
+  profileMode: ProfileMode | ''
+  resumeLayout: ResumeLayout | ''
 
   storyHardestTechnicalChallenge: string
   storyDisagreementOrConflict: string
@@ -89,6 +114,19 @@ export type ApplicantProfileDraft = {
   resumePdfUrl: string
 }
 
+export function newWorkEntry(): WorkEntry {
+  return {
+    id: crypto.randomUUID(),
+    company: '',
+    role: '',
+    startDate: '',
+    endDate: '',
+    isCurrent: false,
+    employmentType: 'internship',
+    summaryBullets: '',
+  }
+}
+
 export function newProjectEntry(): ProjectEntry {
   return {
     id: crypto.randomUUID(),
@@ -111,6 +149,7 @@ export function createEmptyProfileDraft(): ApplicantProfileDraft {
     preferredName: '',
     headline: '',
     currentCompany: '',
+    currentStatus: '',
     region: '',
     cityOrDetail: '',
     timezone: '',
@@ -122,6 +161,7 @@ export function createEmptyProfileDraft(): ApplicantProfileDraft {
 
     yearsExperience: '',
     seniorityTarget: '',
+    paidWorkExperience: '',
     primaryDiscipline: '',
     disciplineOtherNote: '',
     targetRolesNarrative: '',
@@ -142,8 +182,16 @@ export function createEmptyProfileDraft(): ApplicantProfileDraft {
     toolsOtherNote: '',
     highestEducation: '',
     educationDetails: '',
+    schoolName: '',
+    expectedGraduation: '',
+    courseworkNote: '',
 
-    projects: [newProjectEntry()],
+    workEntries: [newWorkEntry()],
+
+    projects: [newProjectEntry(), newProjectEntry()],
+
+    profileMode: '',
+    resumeLayout: '',
 
     storyHardestTechnicalChallenge: '',
     storyDisagreementOrConflict: '',

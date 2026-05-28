@@ -44,14 +44,14 @@ func RunPipeline(ctx context.Context, cfg config.Config, pool *pgxpool.Pool, tai
 	if err != nil {
 		return PipelineResult{}, err
 	}
-	validation := ValidateStructuredResume(structuredResume)
+	validation := ValidateStructuredResume(structuredResume, evidence.DensityHints.ResumeLayout)
 	if !validation.OK {
 		slog.Warn("tailor_resume_validation_retry", "warnings", validation.Warnings)
 		structuredResume, err = WriteStructuredResume(ctx, cfg, tailorCtx.JobTitle, tailorCtx.JobCompany, *jd, evidence, validation.Warnings)
 		if err != nil {
 			return PipelineResult{}, err
 		}
-		validation = ValidateStructuredResume(structuredResume)
+		validation = ValidateStructuredResume(structuredResume, evidence.DensityHints.ResumeLayout)
 	}
 
 	templateID := pickTemplateID(tailorCtx.UserID, tailorCtx.JobID)

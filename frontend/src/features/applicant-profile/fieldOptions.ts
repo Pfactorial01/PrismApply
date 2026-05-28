@@ -11,6 +11,20 @@ export const YEARS_EXPERIENCE_OPTIONS: SelectOption[] = [
   { value: '12+', label: '12+ years' },
 ]
 
+export const PAID_WORK_EXPERIENCE_OPTIONS: SelectOption[] = [
+  { value: '', label: 'Select an option' },
+  { value: 'none', label: 'No paid software work yet (school / projects only)' },
+  { value: 'internship_only', label: 'Internships, co-ops, or short freelance only' },
+  { value: 'full_time', label: 'At least one full-time software role' },
+]
+
+export const WORK_ENTRY_TYPE_OPTIONS: SelectOption[] = [
+  { value: 'internship', label: 'Internship' },
+  { value: 'coop', label: 'Co-op' },
+  { value: 'freelance', label: 'Freelance / contract' },
+  { value: 'part_time', label: 'Part-time' },
+]
+
 export const SENIORITY_OPTIONS: SelectOption[] = [
   { value: '', label: 'Select an option' },
   { value: 'intern', label: 'Intern' },
@@ -199,6 +213,16 @@ export const MOTIVATION_SLUGS = [
   ['mot_contract', 'Contract ending'],
   ['mot_relocate', 'Relocation'],
   ['mot_mission', 'Mission alignment'],
+  ['mot_explore', 'Exploring options'],
+  ['mot_other', 'Other'],
+] as const
+
+export const EARLY_MOTIVATION_SLUGS = [
+  ['mot_first_job', 'First full-time role'],
+  ['mot_internship', 'Internship or co-op'],
+  ['mot_learn', 'Learn on the job'],
+  ['mot_mission', 'Mission alignment'],
+  ['mot_growth', 'Growth and mentorship'],
   ['mot_explore', 'Exploring options'],
   ['mot_other', 'Other'],
 ] as const

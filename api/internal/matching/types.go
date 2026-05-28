@@ -20,6 +20,11 @@ type UserPreferences struct {
 	HardPreferenceBullets   []string `json:"hardPreferenceBullets"`
 	// MatchTierMode controls which match tiers create job_matches: strong_only or strong_and_promising.
 	MatchTierMode string `json:"matchTierMode,omitempty"`
+	// AllowStretchMatches permits matches where job seniority is above the user's target (promising stretch roles).
+	AllowStretchMatches bool `json:"allowStretchMatches,omitempty"`
+	// ProfileMode and ResumeLayout are derived from profile targets on submit.
+	ProfileMode   string `json:"profileMode,omitempty"`
+	ResumeLayout  string `json:"resumeLayout,omitempty"`
 }
 
 // JobFacts is structured metadata extracted once at job ingest.

@@ -1,5 +1,5 @@
-import type { ApplicantProfileDraft, ProjectEntry } from './types'
-import { createEmptyProfileDraft, newProjectEntry } from './types'
+import type { ApplicantProfileDraft, ProjectEntry, WorkEntry } from './types'
+import { createEmptyProfileDraft, newProjectEntry, newWorkEntry } from './types'
 
 const KNOWN_TIMEZONE_SLUGS = new Set([
   '',
@@ -31,6 +31,23 @@ function strArr(v: unknown): string[] {
 
 function bool(v: unknown, fallback: boolean): boolean {
   return typeof v === 'boolean' ? v : fallback
+}
+
+function normalizeWorkEntries(raw: unknown): WorkEntry[] {
+  if (!Array.isArray(raw) || raw.length === 0) return [newWorkEntry()]
+  return raw.map((item) => {
+    if (!isRecord(item)) return newWorkEntry()
+    return {
+      id: typeof item.id === 'string' ? item.id : crypto.randomUUID(),
+      company: str(item.company),
+      role: str(item.role),
+      startDate: str(item.startDate),
+      endDate: str(item.endDate),
+      isCurrent: bool(item.isCurrent, false),
+      employmentType: str(item.employmentType) || 'internship',
+      summaryBullets: str(item.summaryBullets),
+    }
+  })
 }
 
 function normalizeProjects(raw: unknown): ProjectEntry[] {
@@ -102,11 +119,39 @@ export function normalizeProfileDraftFromUnknown(raw: unknown): ApplicantProfile
     comfortableSharingFailureStories: bool(raw.comfortableSharingFailureStories, empty.comfortableSharingFailureStories),
     resumePdfUrl: str(raw.resumePdfUrl),
     projects: normalizeProjects(raw.projects),
+    workEntries: normalizeWorkEntries(raw.workEntries),
+    paidWorkExperience: (str(raw.paidWorkExperience) || '') as ApplicantProfileDraft['paidWorkExperience'],
+    currentStatus: str(raw.currentStatus),
+    schoolName: str(raw.schoolName),
+    expectedGraduation: str(raw.expectedGraduation),
+    courseworkNote: str(raw.courseworkNote),
+    profileMode: (str(raw.profileMode) || '') as ApplicantProfileDraft['profileMode'],
+    resumeLayout: (str(raw.resumeLayout) || '') as ApplicantProfileDraft['resumeLayout'],
   }
 
   if (merged.timezone && !KNOWN_TIMEZONE_SLUGS.has(merged.timezone)) {
     merged.timezoneOtherNote = merged.timezoneOtherNote || merged.timezone
     merged.timezone = 'other'
+  }
+
+  if (!merged.paidWorkExperience) {
+    const years = merged.yearsExperience
+    if (years === '3-5' || years === '5-8' || years === '8-12' || years === '12+') {
+      merged.paidWorkExperience = 'full_time'
+    } else if (years === '0-1') {
+      merged.paidWorkExperience = 'none'
+    } else if (years === '1-3') {
+      merged.paidWorkExperience = merged.honestCareerNarrative.trim() ? 'full_time' : 'internship_only'
+    }
+  }
+
+  if (merged.workEntries.length === 0) {
+    merged.workEntries = [newWorkEntry()]
+  }
+  if (merged.projects.length < 2 && (merged.paidWorkExperience === 'none' || merged.paidWorkExperience === 'internship_only')) {
+    while (merged.projects.length < 2) {
+      merged.projects.push(newProjectEntry())
+    }
   }
 
   return merged

@@ -1,37 +1,53 @@
 import type { ApplicantProfileDraft } from './types'
-
-const WIZARD_STEP_IDS = [
-  'basics',
-  'targets',
-  'experience',
-  'resume-upload',
-  'skills',
-  'projects',
-  'stories',
-  'goals',
-  'work-style',
-] as const
+import {
+  countCompleteProjects,
+  countCompleteWorkEntries,
+  deriveProfileMode,
+  getWizardSteps,
+  minProjectsRequired,
+} from './profileMode'
 
 export function isWizardStepComplete(
   step: string,
   draft: ApplicantProfileDraft,
 ): boolean {
+  const mode = deriveProfileMode(draft)
+
   switch (step) {
     case 'basics':
       return Boolean(draft.fullName && draft.headline && draft.region)
     case 'targets':
       return Boolean(
-        draft.yearsExperience && draft.seniorityTarget && draft.primaryDiscipline,
+        draft.yearsExperience &&
+          draft.seniorityTarget &&
+          draft.primaryDiscipline &&
+          draft.paidWorkExperience,
       )
+    case 'education':
+      return Boolean(draft.schoolName && draft.highestEducation)
+    case 'work-history':
+      return countCompleteWorkEntries(draft) >= 1
     case 'experience':
+      if (mode === 'transitional') {
+        return Boolean(draft.honestCareerNarrative)
+      }
       return Boolean(draft.honestCareerNarrative && draft.proudestProfessionalWins)
     case 'resume-upload':
-      return Boolean(draft.resumePlainText.trim())
+      if (mode === 'experienced') {
+        return Boolean(draft.resumePlainText.trim())
+      }
+      return true
     case 'skills':
+      if (mode === 'early') {
+        return Boolean(draft.skillsCoreNarrative)
+      }
       return Boolean(draft.skillsCoreNarrative && draft.highestEducation)
     case 'projects':
-      return draft.projects.some((p) => p.title && p.summary)
+      return countCompleteProjects(draft) >= minProjectsRequired(mode)
     case 'stories':
+      if (mode === 'early') {
+        return Boolean(draft.storyHardestTechnicalChallenge)
+      }
       return Boolean(
         draft.storyHardestTechnicalChallenge && draft.storyDisagreementOrConflict,
       )
@@ -49,5 +65,13 @@ export function isApplicantProfileComplete(
   profile: ApplicantProfileDraft | undefined,
 ): boolean {
   if (!profile) return false
-  return WIZARD_STEP_IDS.every((id) => isWizardStepComplete(id, profile))
+  const steps = getWizardSteps(profile)
+  return steps.every((s) => isWizardStepComplete(s.id, profile))
+}
+
+/** Gate for app routes that require a submitted-ready profile. */
+export function isProfileReadyForApp(
+  profile: ApplicantProfileDraft | undefined,
+): boolean {
+  return isApplicantProfileComplete(profile)
 }

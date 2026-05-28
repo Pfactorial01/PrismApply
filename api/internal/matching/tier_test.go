@@ -105,3 +105,17 @@ func TestMatchPassesTierFilter(t *testing.T) {
 		t.Fatal("strong-only mode should reject promising")
 	}
 }
+
+func TestMatchPassesStretchFilter(t *testing.T) {
+	over := &matching.AdjudicationResult{SeniorityFit: "over", Recommend: true}
+	good := &matching.AdjudicationResult{SeniorityFit: "good", Recommend: true}
+	if !matching.MatchPassesStretchFilter(matching.UserPreferences{AllowStretchMatches: true}, over) {
+		t.Fatal("stretch allowed when opted in")
+	}
+	if matching.MatchPassesStretchFilter(matching.UserPreferences{}, over) {
+		t.Fatal("stretch blocked by default")
+	}
+	if !matching.MatchPassesStretchFilter(matching.UserPreferences{}, good) {
+		t.Fatal("non-stretch should pass")
+	}
+}

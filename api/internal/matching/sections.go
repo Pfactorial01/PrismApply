@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"prismapply/api/internal/embeddings"
+	"prismapply/api/internal/profilemode"
 )
 
 // Section keys for profile embedding chunks.
@@ -16,6 +17,8 @@ const (
 	SectionSkills         = "skills"
 	SectionExperience     = "experience"
 	SectionProjects       = "projects"
+	SectionEducation      = "education"
+	SectionInternships    = "internships"
 	SectionStories        = "stories"
 	SectionPreferencesSoft = "preferences_soft"
 	SectionConstraints    = "constraints"
@@ -70,6 +73,11 @@ type fullProfile struct {
 	HonestCareerNarrative     string        `json:"honestCareerNarrative"`
 	ProudestProfessionalWins  string        `json:"proudestProfessionalWins"`
 	GapsOrNonTraditionalPath  string        `json:"gapsOrNonTraditionalPath"`
+	SchoolName                string        `json:"schoolName"`
+	ExpectedGraduation        string        `json:"expectedGraduation"`
+	CourseworkNote            string        `json:"courseworkNote"`
+	PaidWorkExperience        string        `json:"paidWorkExperience"`
+	WorkEntries               []workEntryJSON `json:"workEntries"`
 	Projects                  []projectJSON `json:"projects"`
 	SelectedMotivationSlugs   []string      `json:"selectedMotivationSlugs"`
 	MotivationsOtherNote      string        `json:"motivationsOtherNote"`
@@ -88,6 +96,16 @@ type projectJSON struct {
 	PrimaryTechSlug string `json:"primaryTechSlug"`
 	TechStackExtra  string `json:"techStackExtra"`
 	ImpactMetrics   string `json:"impactMetrics"`
+	Link            string `json:"link"`
+}
+
+type workEntryJSON struct {
+	Company        string `json:"company"`
+	Role           string `json:"role"`
+	StartDate      string `json:"startDate"`
+	EndDate        string `json:"endDate"`
+	IsCurrent      bool   `json:"isCurrent"`
+	SummaryBullets string `json:"summaryBullets"`
 }
 
 // BuildProfileSections returns section-keyed text for embedding (constraints excluded from similarity).
@@ -121,6 +139,12 @@ func BuildProfileSections(raw []byte) []ProfileSection {
 	}
 	if s := buildSkillsSection(p); s != "" {
 		sections = append(sections, ProfileSection{Key: SectionSkills, Content: s})
+	}
+	if e := buildEducationSection(p); e != "" {
+		sections = append(sections, ProfileSection{Key: SectionEducation, Content: e})
+	}
+	if w := buildInternshipsSection(p.WorkEntries); w != "" {
+		sections = append(sections, ProfileSection{Key: SectionInternships, Content: w})
 	}
 	if e := buildExperienceSection(p); e != "" {
 		sections = append(sections, ProfileSection{Key: SectionExperience, Content: e})
@@ -240,6 +264,69 @@ func buildSkillsSection(p fullProfile) string {
 	return strings.Join(lines, "\n")
 }
 
+func buildEducationSection(p fullProfile) string {
+	var lines []string
+	if p.SchoolName != "" {
+		line := "School: " + p.SchoolName
+		if p.ExpectedGraduation != "" {
+			line += " (" + p.ExpectedGraduation + ")"
+		}
+		lines = append(lines, line)
+	}
+	if p.HighestEducation != "" {
+		lines = append(lines, "Education: "+labelForSlug(p.HighestEducation))
+	}
+	if p.EducationDetails != "" {
+		lines = append(lines, p.EducationDetails)
+	}
+	if p.CourseworkNote != "" {
+		lines = append(lines, "Coursework: "+p.CourseworkNote)
+	}
+	return strings.Join(lines, "\n")
+}
+
+func buildInternshipsSection(entries []workEntryJSON) string {
+	var out []string
+	for _, e := range entries {
+		if strings.TrimSpace(e.Company) == "" && strings.TrimSpace(e.Role) == "" {
+			continue
+		}
+		var lines []string
+		if e.Role != "" && e.Company != "" {
+			lines = append(lines, e.Role+" at "+e.Company)
+		} else if e.Role != "" {
+			lines = append(lines, e.Role)
+		} else {
+			lines = append(lines, e.Company)
+		}
+		dates := e.StartDate
+		if e.IsCurrent {
+			if dates != "" {
+				dates += " – Present"
+			} else {
+				dates = "Present"
+			}
+		} else if e.EndDate != "" {
+			if dates != "" {
+				dates += " – " + e.EndDate
+			} else {
+				dates = e.EndDate
+			}
+		}
+		if dates != "" {
+			lines = append(lines, dates)
+		}
+		if e.SummaryBullets != "" {
+			lines = append(lines, e.SummaryBullets)
+		}
+		out = append(out, strings.Join(lines, "\n"))
+	}
+	if len(out) == 0 {
+		return ""
+	}
+	return strings.Join(out, "\n\n")
+}
+
 func buildExperienceSection(p fullProfile) string {
 	var parts []string
 	for _, s := range []string{p.HonestCareerNarrative, p.ProudestProfessionalWins, p.GapsOrNonTraditionalPath} {
@@ -271,6 +358,9 @@ func buildProjectSections(projects []projectJSON) []string {
 		}
 		if pr.ImpactMetrics != "" {
 			lines = append(lines, pr.ImpactMetrics)
+		}
+		if pr.Link != "" {
+			lines = append(lines, "Link: "+pr.Link)
 		}
 		out = append(out, strings.Join(lines, "\n"))
 	}
@@ -442,11 +532,20 @@ func buildLogisticsSection(facts JobFacts, location string) string {
 
 // ComputeFinalScore combines dimension similarities into a weighted score.
 func ComputeFinalScore(b *ScoreBreakdown) float64 {
-	b.FinalScore = WeightResumePosting*b.ResumePosting +
-		WeightSkillsReqs*b.SkillsReqs +
-		WeightTargetsPosting*b.TargetsPosting +
-		WeightExperienceDesc*b.ExperienceDesc +
-		WeightMaxChunk*b.MaxChunkSim
+	return ComputeFinalScoreForMode(b, "")
+}
+
+// ComputeFinalScoreForMode applies mode-specific weights (early profiles emphasize skills/projects over resume/experience).
+func ComputeFinalScoreForMode(b *ScoreBreakdown, profileMode string) float64 {
+	wResume, wSkills, wTargets, wExp, wMax := WeightResumePosting, WeightSkillsReqs, WeightTargetsPosting, WeightExperienceDesc, WeightMaxChunk
+	if profileMode == profilemode.ModeEarly {
+		wResume, wSkills, wTargets, wExp, wMax = 0.12, 0.28, 0.15, 0.20, 0.25
+	}
+	b.FinalScore = wResume*b.ResumePosting +
+		wSkills*b.SkillsReqs +
+		wTargets*b.TargetsPosting +
+		wExp*b.ExperienceDesc +
+		wMax*b.MaxChunkSim
 	return b.FinalScore
 }
 

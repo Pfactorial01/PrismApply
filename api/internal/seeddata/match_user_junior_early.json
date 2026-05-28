@@ -1,0 +1,118 @@
+{
+  "fullName": "James Adedokun",
+  "email": "adeoyeadebayo18+2@gmail.com",
+  "phoneNumber": "23475478665",
+  "preferredName": "James",
+  "headline": "Junior full-stack engineer · Python, React, Docker, Linux/CI/CD · Go & PostgreSQL projects for ~200 campus users",
+  "currentCompany": "",
+  "currentStatus": "Final-year B.S. Computer Science at Portland State University (graduating May 2026). Currently finishing capstone and interviewing for junior backend or full-stack roles. Open to remote US or hybrid in the Pacific Northwest.",
+  "region": "mea",
+  "cityOrDetail": "Lagos, Nigeria (open to remote US roles and willing to relocate for the right junior backend team)",
+  "timezone": "other",
+  "timezoneOtherNote": "West Africa Time (WAT / UTC+1). Core overlap with US East Coast mornings for standups and pairing.",
+  "linkedInUrl": "https://www.linkedin.com/in/adeoyeadebayo/",
+  "portfolioUrl": "https://alexjordan.dev",
+  "githubUrl": "https://github.com/Pfactorial01",
+  "otherLinks": "https://dev.to/alexjordan — occasional write-ups on API design\nhttps://github.com/Pfactorial01/campus-events-api — project README with architecture diagram",
+
+  "yearsExperience": "0-1",
+  "seniorityTarget": "junior",
+  "paidWorkExperience": "internship_only",
+  "primaryDiscipline": "fullstack",
+  "disciplineOtherNote": "Backend-leaning full-stack: Python and Node APIs, React frontends, Docker/Linux CI pipelines, PostgreSQL data modeling.",
+  "targetRolesNarrative": "Junior full-stack or backend engineer on a product team with real users — Python/Node services, React or similar frontend, Docker and CI/CD, PostgreSQL. I want to own small features end-to-end (API, tests, basic observability) with regular code review from seniors. Comfortable with Linux CLI, Bash automation, and containerized deploys. Titles: Junior Software Engineer, Entry-Level Full Stack Engineer, Associate Backend Engineer, New Grad Software Engineer.",
+  "selectedIndustrySlugs": ["b2b_saas", "devtools", "fintech", "edtech"],
+  "industryOtherNote": "Most interested in climate data infrastructure, public-sector digital services, and B2B tools with clear user impact. Prefer not defense-adjacent or gambling. Open to healthtech and fintech if compliance culture is serious.",
+  "companiesYouAdmire": "Stripe — API design, error messages, and docs that teach you how to think about the domain. Linear — small teams shipping polished product with strong engineering culture. Any B2B SaaS with clear mentorship, readable codebases, and a habit of writing design notes before big changes. I am less interested in ad-tech or crypto unless the product problem is genuinely interesting.",
+
+  "honestCareerNarrative": "I switched from biology to computer science in my sophomore year after taking an intro programming course and realizing I liked building systems more than lab work. Since then I have focused on backend coursework and hands-on projects rather than stacking unrelated internships.\n\nMy two main projects are a campus events API (used by ~200 students during orientation) and a personal budget tracker with Plaid sandbox integration. I also interned at a local digital agency where I maintained WordPress sites for clients and built a small Node.js service that validated lead-form submissions and posted alerts to Slack.\n\nI am looking for my first full-time role where I can learn production practices — testing, deploy pipelines, incident response — from patient senior engineers on a team that ships regularly.",
+  "proudestProfessionalWins": "",
+  "gapsOrNonTraditionalPath": "Career break Jan–Aug 2023 for family caregiving (parent illness). During that time I kept skills current: maintained an open-source retry library, completed one 10-week contract project for a nonprofit (Stripe billing integration), and did not hide the gap in interviews — I explain it plainly and point to continuous learning.",
+
+  "resumePlainText": "",
+  "resumeAttachmentName": null,
+  "resumePdfUrl": "",
+
+  "skillsCoreNarrative": "I am most comfortable building REST APIs in Python or Node, React frontends for student projects, modeling relational data in PostgreSQL, and writing tests before refactors. Strong Linux CLI and Bash scripting from coursework and internship work; daily use of Docker, GitLab CI/GitHub Actions, and containerized deploys.\n\nFrom projects and coursework I have worked with Python, Go, Node, React, Docker, GitHub Actions, basic AWS (S3, Lambda hello-world), and Fly.io deploys. I read docs and reproduce bugs locally before asking for help, and I take code review feedback seriously — I keep a notes doc of patterns seniors point out.",
+  "selectedRampAreaSlugs": ["ramp_go", "ramp_k8s", "ramp_data", "ramp_front"],
+  "selectedToolSlugs": ["postgres", "docker", "node", "redis", "github_actions", "aws", "react"],
+  "toolsOtherNote": "Python, Bash, Linux CLI, Docker, GitLab CI, GitHub Actions, PostgreSQL, Fly.io, basic AWS (S3, Lambda). Comfortable ramping on Kubernetes with platform team support.",
+  "highestEducation": "bachelors",
+  "schoolName": "Portland State University — B.S. Computer Science (College of Engineering)",
+  "expectedGraduation": "May 2026 (expected)",
+  "educationDetails": "B.S. Computer Science, GPA 3.6/4.0. Dean's list three semesters. Relevant coursework: Data Structures, Algorithms, Operating Systems, Databases, Computer Networks, Distributed Systems (in progress). AWS Cloud Practitioner certification (2025). Member of PSU ACM student chapter — helped organize two backend workshops.",
+  "courseworkNote": "Databases (CS 410) — Designed a normalized schema for a library system, wrote migrations, and built a query layer in Go with integration tests against PostgreSQL.\n\nOperating Systems (CS 350) — Implemented a Unix-style shell and a simple memory allocator in C; learned about processes, syscalls, and debugging with gdb.\n\nWeb Development (CS 465) — Team capstone planning a student marketplace; I am responsible for auth and listing APIs.\n\nDistributed Systems (in progress) — Reading group on consensus and replication; first assignment was a key-value store with leader election.",
+
+  "workEntries": [
+    {
+      "id": "00000002-0000-4000-8000-000000000001",
+      "company": "Cascade Digital Agency (Portland, OR — ~25 person marketing & web shop)",
+      "role": "Software Engineering Intern (reported to lead developer, 1 other intern on team)",
+      "startDate": "Jun 2025",
+      "endDate": "Aug 2025",
+      "isCurrent": false,
+      "employmentType": "internship",
+      "summaryBullets": "- Built a Node.js webhook handler for client lead forms: schema validation with Zod, idempotent writes to PostgreSQL, and Slack alerts with retry on failure\n- Fixed WCAG AA accessibility issues on two client WordPress sites (contrast ratios, keyboard navigation, focus states) — passed client QA checklist\n- Wrote SQL reports in Metabase for weekly traffic and conversion summaries used in client standups\n- Paired with senior dev on deploy checklist; learned basic Docker Compose for local staging"
+    }
+  ],
+
+  "projects": [
+    {
+      "id": "00000002-0000-4000-8000-000000000002",
+      "kind": "side",
+      "title": "Campus Events API",
+      "summary": "Solo backend for a student club event calendar used during fall orientation. I owned everything on the server side: requirements with two club presidents, PostgreSQL schema (clubs, events, RSVPs, waitlists), Go HTTP API with auth for club admins, and deployment on Fly.io with GitHub Actions CI.\n\nA separate frontend team built a React UI; I documented OpenAPI specs and ran a weekly sync. Features include recurring events, capacity limits, and email reminders via a background worker (asynq + Redis).",
+      "primaryTechSlug": "python",
+      "techStackExtra": "Python 3.12, FastAPI, PostgreSQL 15, sqlc-style typed queries, golang-migrate, Redis + background jobs, OpenAPI 3 spec, GitHub Actions (lint, test, deploy), Fly.io with health checks, Docker",
+      "impactMetrics": "~200 unique students RSVP'd during orientation week across 40 events. Load test with k6: p95 API latency under 120ms at 50 concurrent users. Zero data-loss incidents during the week; one hotfix for timezone display handled within 2 hours.",
+      "link": "https://github.com/Pfactorial01/campus-events-api",
+      "shippedToUsers": true
+    },
+    {
+      "id": "00000002-0000-4000-8000-000000000003",
+      "kind": "side",
+      "title": "Personal Budget Tracker",
+      "summary": "Full-stack side project integrating Plaid sandbox for read-only transaction import, categorization rules, and monthly spend summaries. I built the Python FastAPI backend, PostgreSQL schema, React dashboard, and GitLab CI pipeline. Focus was reliable sync jobs, Linux-friendly deploy scripts, and clear error states when bank connections expire.",
+      "primaryTechSlug": "python",
+      "techStackExtra": "Python, FastAPI, PostgreSQL, React, Plaid sandbox API, Docker, GitLab CI, Bash deploy scripts",
+      "impactMetrics": "Used personally for 8 months; sync job handles ~400 sandbox transactions with zero duplicate imports after adding idempotency keys.",
+      "link": "https://github.com/Pfactorial01/budget-tracker",
+      "shippedToUsers": true
+    }
+  ],
+
+  "profileMode": "early",
+  "resumeLayout": "hybrid",
+
+  "storyHardestTechnicalChallenge": "During orientation week our events API intermittently dropped RSVPs when two students clicked at the same time. Support messages from club admins showed duplicate success toasts but missing rows in the database.\n\nI reproduced the race locally with two browser tabs and concurrent curl scripts, confirmed a read-then-write gap without transaction isolation, and fixed it with a unique constraint on (event_id, user_id) plus INSERT … ON CONFLICT DO UPDATE. I added an integration test that hammers 50 parallel requests and verified exactly one row per user.\n\nLesson learned: assume concurrency from day one on anything user-facing, not just after production traffic.",
+  "storyDisagreementOrConflict": "On a group database course project, one teammate wanted a single denormalized table to “move faster.” I was worried about update anomalies when we scaled test data.\n\nInstead of arguing in Slack, I proposed we each sketch a schema over one lunch, load 10k sample rows, and compare query plans and row counts for three report types the rubric required. My normalized design was slightly more joins but cleaner updates; we agreed on a hybrid — normalized core with one materialized view for the heaviest report.\n\nWe split migration scripts and I documented the decision in our README so the professor could follow our reasoning.",
+  "storyBiggestMistake": "For a class project I hard-coded a Stripe test API key in source and pushed to a public GitHub repo. A classmate noticed within a day; nothing was exploited but it was a serious scare.\n\nI rotated the key immediately, force-pushed after moving secrets to .env (and adding .env to .gitignore), installed git-secrets locally, and wrote a one-page setup doc for teammates so no one else repeated it. Our TA used it as a cautionary example — embarrassing, but it changed how I treat config everywhere since.",
+  "storyLeadingWithoutAuthority": "",
+  "storyTightDeadline": "Capstone demo was in five days and our OAuth integration with the university SSO was blocked on IT approval we could not control.\n\nI called a team meeting, proposed scoping auth down to email magic links for the demo only, and wrote a one-page test plan covering happy path, expired links, and rate limiting. I implemented the magic-link flow in two days; another teammate polished UI; we rehearsed the demo twice.\n\nWe shipped on time, clearly labeled OAuth as post-demo work, and got full SSO working two weeks later. The professor cared that we made a deliberate tradeoff and communicated it.",
+  "storyConflictingPriorities": "",
+  "storyProcessImprovement": "",
+  "storyDifficultFeedback": "",
+  "storyMentoringTeaching": "",
+  "storyCrossFunctionalCollaboration": "",
+  "storyAmbiguousProblem": "",
+  "storyEthicalOrRiskTradeoff": "",
+
+  "selectedMotivationSlugs": ["mot_first_job", "mot_learn", "mot_growth", "mot_mission"],
+  "motivationsOtherNote": "I am graduating in May and want my first full-time role on a team that treats mentorship seriously — regular code review, not sink-or-swim. I am motivated by products with real users (even B2B) where I can see feedback loops, not by title chasing or grinding LeetCode indefinitely.",
+  "selectedNextRoleDesireSlugs": ["next_ic_depth", "next_product", "next_greenfield"],
+  "whatYouWantNextNote": "In the next 12–18 months I want to become confident owning a small service in production: deploys, on-call shadowing, and writing runbooks. Longer term I am interested in backend/platform work, not management. Ideal team: writes design docs for non-trivial changes, has sane on-call load, and invests in intern/new-grad onboarding.",
+  "selectedDealbreakerSlugs": ["db_no_oncall"],
+  "dealBreakersOtherNote": "No mandatory weekend on-call rotations longer than one week per quarter. No “always available” Slack culture without comp or time-off tradeoffs.",
+
+  "workArrangement": "remote",
+  "teamSizePreference": "small",
+  "compensationBand": "80_120",
+  "compensationExtraNote": "Targeting first full-time junior backend roles; open to equity at growth-stage companies with clear liquid preference.",
+  "openToEquity": true,
+  "openToContract": false,
+  "openToRelocate": true,
+  "visaStatus": "need_sponsorship",
+  "needsVisaSponsorship": true,
+  "workAuthOtherNote": "Based in Nigeria. Will need visa sponsorship for roles outside Nigeria unless the role is remote-first and compliant with local hiring constraints. Can start after graduation May 2026.",
+  "comfortableSharingFailureStories": true
+}

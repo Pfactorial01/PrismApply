@@ -12,6 +12,7 @@ import {
   type UserSettings,
 } from '@/lib/settingsApi'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -107,7 +108,8 @@ export function SettingsPage() {
   const isDirty =
     draft != null &&
     settings != null &&
-    draft.matchTierMode !== settings.matchTierMode
+    (draft.matchTierMode !== settings.matchTierMode ||
+      draft.allowStretchMatches !== settings.allowStretchMatches)
 
   const saveMutation = useMutation({
     mutationFn: saveUserSettings,
@@ -123,6 +125,14 @@ export function SettingsPage() {
     setDraft((prev) => ({
       ...(prev ?? settings ?? defaultUserSettings),
       matchTierMode: value,
+    }))
+    setSaved(false)
+  }
+
+  function patchAllowStretchMatches(checked: boolean) {
+    setDraft((prev) => ({
+      ...(prev ?? settings ?? defaultUserSettings),
+      allowStretchMatches: checked,
     }))
     setSaved(false)
   }
@@ -198,6 +208,17 @@ export function SettingsPage() {
               ))}
             </SelectContent>
           </Select>
+        </SettingRow>
+        <SettingRow
+          label="Stretch roles above your seniority target"
+          description="When off, we only match and tailor roles at your target level (e.g. junior). Mid-level stretch matches require this opt-in."
+        >
+          <Checkbox
+            checked={current.allowStretchMatches}
+            onCheckedChange={(v) => patchAllowStretchMatches(v === true)}
+            disabled={isLoading || saveMutation.isPending}
+            aria-label="Allow stretch matches above seniority target"
+          />
         </SettingRow>
       </SectionCard>
 

@@ -237,10 +237,38 @@ func ScoreUserJob(ctx context.Context, pool *pgxpool.Pool, userID, jobID uuid.UU
 		}}
 	}
 
-	return scoreBreakdownFromSections(userChunks, jobSections), nil
+	return scoreBreakdownFromSections(userChunks, jobSections, ""), nil
 }
 
-func scoreBreakdownFromSections(userChunks []UserSectionChunk, jobSections []SectionEmbedding) matching.ScoreBreakdown {
+// ScoreUserJobForUser computes Layer 2 score with mode-aware weighting from user preferences.
+func ScoreUserJobForUser(ctx context.Context, pool *pgxpool.Pool, userID, jobID uuid.UUID, profileMode string) (matching.ScoreBreakdown, error) {
+	userChunks, err := GetUserSectionChunks(ctx, pool, userID)
+	if err != nil {
+		return matching.ScoreBreakdown{}, err
+	}
+	if len(userChunks) == 0 {
+		return matching.ScoreBreakdown{}, nil
+	}
+
+	jobSections, err := GetJobSectionEmbeddings(ctx, pool, jobID)
+	if err != nil {
+		return matching.ScoreBreakdown{}, err
+	}
+	if len(jobSections) == 0 {
+		emb, err := GetJobEmbedding(ctx, pool, jobID)
+		if err != nil || len(emb) == 0 {
+			return matching.ScoreBreakdown{}, nil
+		}
+		jobSections = []SectionEmbedding{{
+			SectionKey: matching.JobSectionPostingCore,
+			Embedding:  emb,
+		}}
+	}
+
+	return scoreBreakdownFromSections(userChunks, jobSections, profileMode), nil
+}
+
+func scoreBreakdownFromSections(userChunks []UserSectionChunk, jobSections []SectionEmbedding, profileMode string) matching.ScoreBreakdown {
 	jobByKey := map[string][]float32{}
 	for _, j := range jobSections {
 		jobByKey[j.SectionKey] = j.Embedding
@@ -279,7 +307,9 @@ func scoreBreakdownFromSections(userChunks []UserSectionChunk, jobSections []Sec
 			if len(posting) > 0 {
 				targetsSims = append(targetsSims, cosineSim(uc.Embedding, posting))
 			}
-		case uc.SectionKey == matching.SectionExperience || matching.SectionPrefixMatch(uc.SectionKey, matching.SectionProjects):
+		case uc.SectionKey == matching.SectionExperience || matching.SectionPrefixMatch(uc.SectionKey, matching.SectionProjects) ||
+			uc.SectionKey == matching.SectionEducation || uc.SectionKey == matching.SectionInternships ||
+			matching.SectionPrefixMatch(uc.SectionKey, matching.SectionInternships):
 			if len(posting) > 0 {
 				expSims = append(expSims, cosineSim(uc.Embedding, posting))
 			}
@@ -294,7 +324,7 @@ func scoreBreakdownFromSections(userChunks []UserSectionChunk, jobSections []Sec
 		MaxChunkSim:    max(allSims),
 		MatchedChunks:  matchedAbove,
 	}
-	matching.ComputeFinalScore(&b)
+	matching.ComputeFinalScoreForMode(&b, profileMode)
 	return b
 }
 

@@ -5,10 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
+
+	"prismapply/api/internal/profilemode"
 )
 
 const (
@@ -34,18 +35,10 @@ func IsEmptyProfileJSON(raw []byte) bool {
 	return ok && len(m) == 0
 }
 
-// ProfileReadyForEmbed is true when the user has finished the wizard and submitted
-// (resume on file). Autosave drafts may be partial and must not trigger matching.
+// ProfileReadyForEmbed is true when the user has finished the wizard and submitted.
+// Autosave drafts may be partial and must not trigger matching.
 func ProfileReadyForEmbed(raw []byte) bool {
-	if IsEmptyProfileJSON(raw) {
-		return false
-	}
-	var doc map[string]any
-	if json.Unmarshal(raw, &doc) != nil {
-		return false
-	}
-	text, _ := doc["resumePlainText"].(string)
-	return strings.TrimSpace(text) != ""
+	return profilemode.ProfileReadyForEmbed(raw)
 }
 
 // EnqueueProfileEmbed pushes one job onto the Redis list. Caller supplies the list key (from config).

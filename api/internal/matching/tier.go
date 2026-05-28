@@ -68,6 +68,15 @@ func NormalizeMatchTierMode(mode string) string {
 	}
 }
 
+// MatchPassesStretchFilter reports whether a seniority stretch (over) match may be created.
+// Stretch roles above the user's target require explicit opt-in via AllowStretchMatches.
+func MatchPassesStretchFilter(prefs UserPreferences, adj *AdjudicationResult) bool {
+	if adj == nil || adj.SeniorityFit != "over" {
+		return true
+	}
+	return prefs.AllowStretchMatches
+}
+
 // MatchPassesTierFilter reports whether a scored match should be created for the user's tier mode.
 func MatchPassesTierFilter(prefs UserPreferences, matchScore *float32, bd *ScoreBreakdown, adj *AdjudicationResult) bool {
 	if NormalizeMatchTierMode(prefs.MatchTierMode) == MatchTierModeStrongAndPromising {

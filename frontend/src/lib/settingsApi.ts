@@ -4,10 +4,12 @@ export type MatchTierMode = 'strong_only' | 'strong_and_promising'
 
 export type UserSettings = {
   matchTierMode: MatchTierMode
+  allowStretchMatches: boolean
 }
 
 export const defaultUserSettings: UserSettings = {
   matchTierMode: 'strong_and_promising',
+  allowStretchMatches: false,
 }
 
 export const userSettingsQueryKey = ['user-settings'] as const
@@ -32,6 +34,7 @@ export async function fetchUserSettings(): Promise<UserSettings> {
     ...raw,
     matchTierMode:
       raw.matchTierMode === 'strong_only' ? 'strong_only' : 'strong_and_promising',
+    allowStretchMatches: raw.allowStretchMatches === true,
   }
 }
 

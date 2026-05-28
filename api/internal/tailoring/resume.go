@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"prismapply/api/internal/config"
+	"prismapply/api/internal/profilemode"
 )
 
 var resumeSchema = map[string]any{
@@ -176,7 +177,7 @@ func cleanStructuredResume(r StructuredResume) StructuredResume {
 	return r
 }
 
-func ValidateStructuredResume(resume StructuredResume) ValidationResult {
+func ValidateStructuredResume(resume StructuredResume, resumeLayout string) ValidationResult {
 	var warnings []string
 	cited := map[string]struct{}{}
 
@@ -186,8 +187,27 @@ func ValidateStructuredResume(resume StructuredResume) ValidationResult {
 	if len(resume.Contact) == 0 {
 		warnings = append(warnings, "Missing contact info")
 	}
+	if len(resume.Skills) == 0 {
+		warnings = append(warnings, "Missing skills section")
+	}
+	if len(resume.Education) == 0 && resumeLayout != profilemode.LayoutEmploymentLed {
+		warnings = append(warnings, "Missing education section")
+	}
 	if len(resume.Experience) == 0 && len(resume.Projects) == 0 {
 		warnings = append(warnings, "No experience or projects")
+	}
+	if resumeLayout == profilemode.LayoutProjectOnly && len(resume.Experience) > 0 {
+		warnings = append(warnings, "project_only layout must not include experience entries")
+	}
+
+	minRecent, minOther, minProject := minBulletsMostRecentRole, minBulletsOtherRole, minBulletsPerProject
+	switch resumeLayout {
+	case profilemode.LayoutProjectOnly:
+		minRecent, minOther = 0, 0
+		minProject = 3
+	case profilemode.LayoutHybrid:
+		minRecent, minOther = 2, 2
+		minProject = 3
 	}
 
 	for i, exp := range resume.Experience {
@@ -197,11 +217,11 @@ func ValidateStructuredResume(resume StructuredResume) ValidationResult {
 		if strings.TrimSpace(exp.Role) == "" {
 			warnings = append(warnings, "Experience entry missing role")
 		}
-		minBullets := minBulletsOtherRole
+		minBullets := minOther
 		if i == 0 {
-			minBullets = minBulletsMostRecentRole
+			minBullets = minRecent
 		}
-		if len(exp.Bullets) < minBullets {
+		if minBullets > 0 && len(exp.Bullets) < minBullets {
 			warnings = append(warnings, fmt.Sprintf("%s needs at least %d bullets (has %d)",
 				orDefault(exp.Company, "Most recent role"), minBullets, len(exp.Bullets)))
 		}
@@ -222,9 +242,9 @@ func ValidateStructuredResume(resume StructuredResume) ValidationResult {
 		if strings.TrimSpace(proj.Title) == "" {
 			continue
 		}
-		if len(proj.Bullets) < minBulletsPerProject {
+		if len(proj.Bullets) < minProject {
 			warnings = append(warnings, fmt.Sprintf("Project %q needs at least %d bullets (has %d)",
-				proj.Title, minBulletsPerProject, len(proj.Bullets)))
+				proj.Title, minProject, len(proj.Bullets)))
 		}
 		for _, b := range proj.Bullets {
 			if strings.TrimSpace(b.Text) == "" {

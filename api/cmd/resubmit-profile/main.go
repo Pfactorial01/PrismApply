@@ -19,6 +19,7 @@ import (
 	"prismapply/api/internal/embeddings"
 	"prismapply/api/internal/jobs"
 	"prismapply/api/internal/matching"
+	"prismapply/api/internal/profilemode"
 	"prismapply/api/internal/redisx"
 	"prismapply/api/internal/repo"
 )
@@ -42,6 +43,12 @@ func main() {
 		fmt.Fprintln(os.Stderr, "invalid profile json")
 		os.Exit(1)
 	}
+	normalized, err := profilemode.NormalizeProfileJSON(profileRaw)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "normalize profile: %v\n", err)
+		os.Exit(1)
+	}
+	profileRaw = normalized
 
 	cfg := config.FromEnv()
 	if cfg.DatabaseURL == "" {

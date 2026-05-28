@@ -19,6 +19,7 @@ import (
 	"prismapply/api/internal/embedqueue"
 	"prismapply/api/internal/jsonx"
 	"prismapply/api/internal/matching"
+	"prismapply/api/internal/profilemode"
 	"prismapply/api/internal/r2"
 	"prismapply/api/internal/repo"
 	"prismapply/api/internal/requestid"
@@ -223,16 +224,25 @@ func (h *Handlers) upsertProfile(w http.ResponseWriter, r *http.Request, enqueue
 	if !ok {
 		return
 	}
+	normalized, err := profilemode.NormalizeProfileJSON(raw)
+	if err != nil {
+		jsonx.Write(w, http.StatusBadRequest, map[string]string{"message": "invalid profile JSON"})
+		return
+	}
+	raw = normalized
 	if err := repo.UpsertProfile(r.Context(), h.Pool, id, raw); err != nil {
 		jsonx.Write(w, http.StatusBadRequest, map[string]string{"message": err.Error()})
 		return
 	}
 	if enqueueEmbed {
 		prefs := matching.BuildUserPreferences(raw)
+		prefs.ProfileMode = profilemode.DeriveProfileMode(raw)
+		prefs.ResumeLayout = profilemode.DeriveResumeLayout(raw)
 		if existing, err := repo.LoadUserPreferences(r.Context(), h.Pool, id); err == nil {
 			if existing.MatchTierMode != "" {
 				prefs.MatchTierMode = existing.MatchTierMode
 			}
+			prefs.AllowStretchMatches = existing.AllowStretchMatches
 		}
 		if err := repo.UpdateProfilePreferences(r.Context(), h.Pool, id, prefs); err != nil {
 			slog.Warn("preferences_json update failed", "error", err, "user_id", id.String())
@@ -356,7 +366,8 @@ func (h *Handlers) GetSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 type patchSettingsBody struct {
-	MatchTierMode string `json:"matchTierMode"`
+	MatchTierMode         string `json:"matchTierMode"`
+	AllowStretchMatches   *bool  `json:"allowStretchMatches"`
 }
 
 func (h *Handlers) PatchSettings(w http.ResponseWriter, r *http.Request) {
@@ -375,13 +386,27 @@ func (h *Handlers) PatchSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	mode := matching.NormalizeMatchTierMode(body.MatchTierMode)
-	if err := repo.UpdateUserMatchTierMode(r.Context(), h.Pool, userID, mode); err != nil {
+	prefs, err := repo.LoadUserPreferences(r.Context(), h.Pool, userID)
+	if err != nil {
+		jsonx.Write(w, http.StatusInternalServerError, map[string]string{"message": "could not load settings"})
+		return
+	}
+	prefs.MatchTierMode = mode
+	if body.AllowStretchMatches != nil {
+		prefs.AllowStretchMatches = *body.AllowStretchMatches
+	}
+	if err := repo.UpdateProfilePreferences(r.Context(), h.Pool, userID, prefs); err != nil {
 		jsonx.Write(w, http.StatusInternalServerError, map[string]string{"message": "could not save settings"})
 		return
 	}
 	if mode == matching.MatchTierModeStrongOnly {
 		if _, err := repo.DeletePendingPromisingMatches(r.Context(), h.Pool, userID); err != nil {
 			slog.Warn("delete pending promising matches failed", "error", err, "user_id", userID.String())
+		}
+	}
+	if !prefs.AllowStretchMatches {
+		if _, err := repo.DeletePendingStretchMatches(r.Context(), h.Pool, userID); err != nil {
+			slog.Warn("delete pending stretch matches failed", "error", err, "user_id", userID.String())
 		}
 	}
 	w.WriteHeader(http.StatusNoContent)
