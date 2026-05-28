@@ -1,6 +1,7 @@
 ---
 import PageLayout from '../layouts/PageLayout.astro'
 import PageHero from '../components/PageHero.astro'
+import PageSection from '../components/PageSection.astro'
 import SignupLink from '../components/SignupLink.astro'
 ---
 
@@ -15,7 +16,7 @@ import SignupLink from '../components/SignupLink.astro'
     align="center"
   />
 
-  <section class="site-container pb-16">
+  <PageSection>
     <div class="mx-auto max-w-lg rounded-2xl border-2 border-primary/30 bg-card p-8 text-center shadow-sm">
       <p class="text-sm font-medium uppercase tracking-widest text-primary">Beta</p>
       <p class="mt-4 text-5xl font-semibold tracking-tight text-foreground">$0</p>
@@ -37,5 +38,5 @@ import SignupLink from '../components/SignupLink.astro'
         Paid plans may be introduced later. Beta users will receive advance notice before any pricing changes.
       </p>
     </div>
-  </section>
+  </PageSection>
 </PageLayout>

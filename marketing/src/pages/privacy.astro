@@ -1,6 +1,7 @@
 ---
 import PageLayout from '../layouts/PageLayout.astro'
 import PageHero from '../components/PageHero.astro'
+import PageSection from '../components/PageSection.astro'
 import { site } from '../config'
 ---
 
@@ -13,7 +14,7 @@ import { site } from '../config'
     description={`Last updated: May 27, 2026. This policy describes how ${site.name} handles your data.`}
   />
 
-  <article class="site-container max-w-3xl pb-16 prose-content">
+  <PageSection as="article" class="max-w-3xl prose-content">
     <h2>Overview</h2>
     <p>
       PrismApply ("we", "us") operates the marketing site at {site.url} and the application at {site.appUrl}.
@@ -64,5 +65,5 @@ import { site } from '../config'
     <p>
       We may update this policy. Material changes will be posted on this page with an updated date.
     </p>
-  </article>
+  </PageSection>
 </PageLayout>

@@ -1,6 +1,7 @@
 ---
 import PageLayout from '../layouts/PageLayout.astro'
 import PageHero from '../components/PageHero.astro'
+import PageSection from '../components/PageSection.astro'
 import { site } from '../config'
 ---
 
@@ -13,7 +14,7 @@ import { site } from '../config'
     description={`Last updated: May 27, 2026. By using ${site.name}, you agree to these terms.`}
   />
 
-  <article class="site-container max-w-3xl pb-16 prose-content">
+  <PageSection as="article" class="max-w-3xl prose-content">
     <h2>Service description</h2>
     <p>
       PrismApply helps job seekers build a profile, discover matching roles, and prepare tailored application packages.
@@ -65,5 +66,5 @@ import { site } from '../config'
 
     <h2>Contact</h2>
     <p>Questions: legal@prismapply.com</p>
-  </article>
+  </PageSection>
 </PageLayout>

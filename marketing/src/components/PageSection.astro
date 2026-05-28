@@ -1,0 +1,20 @@
+---
+interface Props {
+  class?: string
+  as?: 'section' | 'article' | 'div'
+  /** default: space below hero; compact: less bottom padding; none: top spacing only */
+  padding?: 'default' | 'compact' | 'none'
+}
+
+const { class: className = '', as: Tag = 'section', padding = 'default' } = Astro.props
+
+const paddingClass = {
+  default: 'pt-14 sm:pt-16 pb-16',
+  compact: 'pt-14 sm:pt-16 pb-8',
+  none: 'pt-14 sm:pt-16',
+}[padding]
+---
+
+<Tag class={`site-container ${paddingClass} ${className}`}>
+  <slot />
+</Tag>

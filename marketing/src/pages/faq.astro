@@ -1,6 +1,7 @@
 ---
 import PageLayout from '../layouts/PageLayout.astro'
 import PageHero from '../components/PageHero.astro'
+import PageSection from '../components/PageSection.astro'
 import FaqList from '../components/FaqList.astro'
 import SignupCta from '../components/SignupCta.astro'
 import { faqItems } from '../data/faq'
@@ -19,11 +20,11 @@ import { faqPageJsonLd } from '../lib/seo'
     align="center"
   />
 
-  <section class="site-container max-w-3xl pb-8">
+  <PageSection class="max-w-3xl" padding="compact">
     <FaqList items={faqItems} />
-  </section>
+  </PageSection>
 
-  <section class="site-container pb-14">
+  <section class="site-container pb-14 pt-8">
     <div class="rounded-xl border border-border bg-muted/30 p-6 sm:p-8">
       <h2 class="text-xl font-semibold text-foreground">Still have questions?</h2>
       <p class="mt-2 text-muted-foreground">

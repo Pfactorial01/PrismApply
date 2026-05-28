@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content'
 import PageLayout from '../../layouts/PageLayout.astro'
 import PageHero from '../../components/PageHero.astro'
+import PageSection from '../../components/PageSection.astro'
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
@@ -19,7 +20,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
     align="center"
   />
 
-  <section class="site-container pb-16">
+  <PageSection>
     <ul class="grid gap-6 sm:grid-cols-2">
       {posts.map((post) => (
         <li class="rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/30">
@@ -36,5 +37,5 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
         </li>
       ))}
     </ul>
-  </section>
+  </PageSection>
 </PageLayout>
