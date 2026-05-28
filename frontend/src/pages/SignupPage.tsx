@@ -7,6 +7,7 @@ import { AuthPageLayout } from '@/components/auth/AuthPageLayout'
 import { authMeQueryKey, sanitizeRedirectParam, signupRequest } from '@/lib/auth'
 import { applicantProfileQueryKey } from '@/lib/profileApi'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
@@ -28,8 +29,18 @@ export function SignupPage() {
   const queryClient = useQueryClient()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [acknowledgedPilot, setAcknowledgedPilot] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+
+  const passwordsMatch = password === confirmPassword
+  const canSubmit =
+    acknowledgedPilot &&
+    email.trim().length > 0 &&
+    password.length >= 8 &&
+    confirmPassword.length >= 8 &&
+    passwordsMatch
 
   const loginSearch =
     redirectTo != null ? { redirect: redirectTo } : undefined
@@ -37,6 +48,16 @@ export function SignupPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+
+    if (!acknowledgedPilot) {
+      setError('Please acknowledge the pilot stage scope before creating an account.')
+      return
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.')
+      return
+    }
+
     setPending(true)
     try {
       const user = await signupRequest(email, password)
@@ -109,12 +130,42 @@ export function SignupPage() {
             minLength={8}
           />
         </div>
+        <div className="grid gap-2">
+          <Label htmlFor="confirm-password">Confirm password</Label>
+          <Input
+            id="confirm-password"
+            type="password"
+            autoComplete="new-password"
+            placeholder="Re-enter your password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            minLength={8}
+            aria-invalid={confirmPassword.length > 0 && !passwordsMatch}
+          />
+          {confirmPassword.length > 0 && !passwordsMatch ? (
+            <p className="text-sm text-destructive">Passwords do not match.</p>
+          ) : null}
+        </div>
+        <label className="flex cursor-pointer items-start gap-3 rounded-md border border-border bg-muted/40 px-3 py-3">
+          <Checkbox
+            id="pilot-acknowledgment"
+            checked={acknowledgedPilot}
+            onCheckedChange={(v) => setAcknowledgedPilot(v === true)}
+            className="mt-0.5"
+          />
+          <span className="text-sm leading-relaxed text-muted-foreground">
+            <span className="font-medium text-foreground">Pilot stage — tech roles only.</span>{' '}
+            PrismApply is in an early pilot and currently focuses on tech roles. Other industries
+            will be added later. I understand this and want to create an account anyway.
+          </span>
+        </label>
         {error ? (
           <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {error}
           </div>
         ) : null}
-        <Button type="submit" disabled={pending} className="w-full">
+        <Button type="submit" disabled={pending || !canSubmit} className="w-full">
           {pending && <Loader2 className="size-4 animate-spin" data-icon="inline-start" />}
           {pending ? 'Creating account\u2026' : 'Create account'}
         </Button>
