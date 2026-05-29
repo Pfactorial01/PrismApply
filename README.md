@@ -29,7 +29,7 @@ See [`deploy/RAILWAY.md`](deploy/RAILWAY.md) for production deployment on Railwa
 ## Prerequisites
 
 - **Go 1.22+** (backend)
-- **Node.js 20+** (frontend and marketing)
+- **Node.js 20+** — only for installing dependencies and running Vite/Astro dev & build (`frontend/`, `marketing/`); the app itself is React in the browser
 - **PostgreSQL** with the [pgvector](https://github.com/pgvector/pgvector) extension
 - **Redis**
 - API keys as needed: OpenAI, R2, Serper (discovery), etc.
