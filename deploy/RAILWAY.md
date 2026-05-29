@@ -111,7 +111,7 @@ For **each** of: `api`, `embed-worker`, `jobworker`, `discover`, `frontend`, `ma
 1. Open the service → **Settings** → **Source**
 2. Click **Connect Repo** → choose **`Pfactorial01/PrismApply`** → branch **`main`**
 3. Confirm **Root Directory** and **Config file path** match the table below
-4. **Start Command** must be **empty** (do not use `start.sh` — that is local dev only)
+4. **Start Command** must be **empty** (do not use `local_start.sh` — that is local dev only)
 5. Enable **Wait for CI** off; **Auto-deploy** on (default when repo is connected)
 
 | Service | Root directory | Config file path |
@@ -142,7 +142,7 @@ Use `--from-source` (GitHub snapshot), **not** `railway up` (local upload).
 
 | Mistake | Symptom |
 |---------|---------|
-| Repo connected at project root only | Tries to run `start.sh`, or RAILPACK instead of Dockerfile |
+| Repo connected at project root only | Tries to run `local_start.sh`, or RAILPACK instead of Dockerfile |
 | Wrong root directory | `service config at '…/railway.toml' not found` |
 | CLI `--path-as-root` config left in place | Same config-not-found error on GitHub deploy — use monorepo paths above |
 
