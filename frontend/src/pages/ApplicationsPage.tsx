@@ -169,8 +169,7 @@ export function ApplicationsPage() {
             <FileText className="size-10 text-content-tertiary" />
             {profileComplete ? (
               <p className="max-w-md text-sm text-content-secondary">
-                No applications yet. Your profile is saved — we are searching for roles and
-                tailoring packages. Check back here soon, or focus on interview prep in the meantime.
+                No applications yet. Your profile is saved — we will notify you when we find matching roles.
               </p>
             ) : (
               <>

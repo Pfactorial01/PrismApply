@@ -37,10 +37,6 @@ export function deriveResumeLayout(draft: ApplicantProfileDraft): ResumeLayout {
   }
 }
 
-export function minProjectsRequired(mode: ProfileMode): number {
-  return mode === 'early' ? 2 : 1
-}
-
 export function countCompleteProjects(draft: ApplicantProfileDraft): number {
   return draft.projects.filter((p) => p.title.trim() && p.summary.trim()).length
 }
@@ -49,79 +45,39 @@ export function countCompleteWorkEntries(draft: ApplicantProfileDraft): number {
   return draft.workEntries.filter((e) => e.company.trim() && e.role.trim()).length
 }
 
+export function getFeaturedProject(draft: ApplicantProfileDraft) {
+  if (draft.featuredProjectId) {
+    return draft.projects.find((p) => p.id === draft.featuredProjectId)
+  }
+  return draft.projects.find((p) => p.title.trim() && p.summary.trim())
+}
+
+export function isFeaturedProjectComplete(draft: ApplicantProfileDraft): boolean {
+  const p = getFeaturedProject(draft)
+  return Boolean(p?.title.trim() && p.summary.trim())
+}
+
+export function needsStateOrProvince(region: string): boolean {
+  return region === 'us' || region === 'ca'
+}
+
 export type WizardStepDef = {
   id: string
   title: string
   shortTitle: string
 }
 
-export function getWizardSteps(draft: ApplicantProfileDraft): WizardStepDef[] {
-  const mode = deriveProfileMode(draft)
-  const basics: WizardStepDef = { id: 'basics', title: 'Basic information', shortTitle: 'Basics' }
-  const targets: WizardStepDef = { id: 'targets', title: 'What you are looking for', shortTitle: 'Targets' }
-  const skills: WizardStepDef = { id: 'skills', title: 'Skills & tools', shortTitle: 'Skills' }
-  const projects: WizardStepDef = {
-    id: 'projects',
-    title: mode === 'early' ? 'Projects (your main proof)' : 'Personal projects',
-    shortTitle: 'Projects',
-  }
-  const stories: WizardStepDef = {
-    id: 'stories',
-    title: mode === 'early' ? 'Stories from projects & learning' : 'Behavioral stories',
-    shortTitle: 'Stories',
-  }
-  const goals: WizardStepDef = {
-    id: 'goals',
-    title: mode === 'experienced' ? 'Motivations & boundaries' : 'What you want next',
-    shortTitle: 'Goals',
-  }
-  const workStyle: WizardStepDef = { id: 'work-style', title: 'Work style & logistics', shortTitle: 'Work' }
+/** Fixed lean onboarding: resume → basics → preferences → stack → story. */
+export const LEAN_WIZARD_STEPS: WizardStepDef[] = [
+  { id: 'resume', title: 'Your resume', shortTitle: 'Resume' },
+  { id: 'basics', title: 'Confirm your details', shortTitle: 'Basics' },
+  { id: 'preferences', title: 'Job preferences', shortTitle: 'Preferences' },
+  { id: 'stack-logistics', title: 'Stack & apply logistics', shortTitle: 'Stack' },
+  { id: 'story', title: 'One story', shortTitle: 'Story' },
+]
 
-  if (mode === 'early') {
-    const steps: WizardStepDef[] = [
-      basics,
-      targets,
-      { id: 'education', title: 'Education & learning', shortTitle: 'Education' },
-    ]
-    if (draft.paidWorkExperience === 'internship_only') {
-      steps.push({ id: 'work-history', title: 'Internships & short roles', shortTitle: 'Internships' })
-    }
-    steps.push(
-      { id: 'resume-upload', title: 'Upload resume (optional)', shortTitle: 'Resume' },
-      skills,
-      projects,
-      stories,
-      goals,
-      workStyle,
-    )
-    return steps
-  }
-
-  if (mode === 'transitional') {
-    return [
-      basics,
-      targets,
-      { id: 'experience', title: 'What you have done so far', shortTitle: 'Experience' },
-      { id: 'resume-upload', title: 'Upload your current resume (optional)', shortTitle: 'Resume' },
-      skills,
-      projects,
-      stories,
-      goals,
-      workStyle,
-    ]
-  }
-
-  return [
-    basics,
-    targets,
-    { id: 'experience', title: 'Career narrative', shortTitle: 'Experience' },
-    { id: 'resume-upload', title: 'Upload your current resume', shortTitle: 'Resume' },
-    skills,
-    projects,
-    stories,
-    goals,
-    workStyle,
-  ]
+export function getWizardSteps(_draft?: ApplicantProfileDraft): WizardStepDef[] {
+  return LEAN_WIZARD_STEPS
 }
 
 export function isEarlyBasics(draft: ApplicantProfileDraft): boolean {

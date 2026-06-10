@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 )
 
 // CompileResumePlainText builds embeddable resume text from wizard fields for early-career profiles.
@@ -260,7 +261,7 @@ func NormalizeProfileJSON(raw []byte) ([]byte, error) {
 		case years == "0-1":
 			doc["paidWorkExperience"] = PaidNone
 		case years == "1-3":
-			if str(doc, "honestCareerNarrative") != "" {
+			if countCompleteWorkEntries(doc) > 0 {
 				doc["paidWorkExperience"] = PaidFullTime
 			} else {
 				doc["paidWorkExperience"] = PaidInternshipOnly
@@ -271,6 +272,9 @@ func NormalizeProfileJSON(raw []byte) ([]byte, error) {
 	}
 	doc["profileMode"] = mode
 	doc["resumeLayout"] = layout
+
+	enrichLeanProfile(doc)
+
 	if ShouldCompileResumeFromDoc(doc) {
 		if compiled := CompileResumePlainTextFromDoc(doc); compiled != "" {
 			if layout != LayoutEmploymentLed || str(doc, "resumePlainText") == "" {
@@ -281,76 +285,191 @@ func NormalizeProfileJSON(raw []byte) ([]byte, error) {
 	return json.Marshal(doc)
 }
 
-// ProfileComplete mirrors frontend wizard completion for embed enqueue gating.
+// StampProfileSubmittedAt records the first Save profile submit timestamp.
+func StampProfileSubmittedAt(raw []byte) ([]byte, error) {
+	var doc map[string]any
+	if err := json.Unmarshal(raw, &doc); err != nil {
+		return raw, err
+	}
+	if str(doc, "profileSubmittedAt") == "" {
+		doc["profileSubmittedAt"] = time.Now().UTC().Format(time.RFC3339)
+	}
+	return json.Marshal(doc)
+}
+
+func enrichLeanProfile(doc map[string]any) {
+	if str(doc, "skillsCoreNarrative") == "" {
+		if s := deriveSkillsFromTools(doc); s != "" {
+			doc["skillsCoreNarrative"] = s
+		}
+	}
+	if str(doc, "honestCareerNarrative") == "" {
+		if s := deriveCareerFromWork(doc); s != "" {
+			doc["honestCareerNarrative"] = s
+		}
+	}
+	if str(doc, "visaStatus") == "" {
+		if boolVal(doc, "needsVisaSponsorship") {
+			doc["visaStatus"] = "need_sponsorship"
+		} else {
+			doc["visaStatus"] = "citizen_pr"
+		}
+	}
+	if slugs, ok := doc["selectedMotivationSlugs"].([]any); !ok || len(slugs) == 0 {
+		doc["selectedMotivationSlugs"] = []string{"mot_explore"}
+	}
+	reorderFeaturedProject(doc)
+}
+
+func deriveSkillsFromTools(doc map[string]any) string {
+	slugs, ok := doc["selectedToolSlugs"].([]any)
+	if !ok || len(slugs) == 0 {
+		if note := str(doc, "toolsOtherNote"); note != "" {
+			return note
+		}
+		return ""
+	}
+	var tools []string
+	for _, s := range slugs {
+		if t, ok := s.(string); ok && t != "" {
+			tools = append(tools, t)
+		}
+	}
+	out := "Core stack: " + strings.Join(tools, ", ") + "."
+	if note := str(doc, "toolsOtherNote"); note != "" {
+		out += " " + note
+	}
+	return out
+}
+
+func deriveCareerFromWork(doc map[string]any) string {
+	entries, ok := doc["workEntries"].([]any)
+	if !ok || len(entries) == 0 {
+		return str(doc, "headline")
+	}
+	var roles []string
+	for _, item := range entries {
+		m, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		company := str(m, "company")
+		role := str(m, "role")
+		if company != "" && role != "" {
+			roles = append(roles, role+" at "+company)
+		}
+	}
+	if len(roles) == 0 {
+		return str(doc, "headline")
+	}
+	return "Experience includes " + strings.Join(roles, "; ") + "."
+}
+
+func reorderFeaturedProject(doc map[string]any) {
+	featuredID := str(doc, "featuredProjectId")
+	if featuredID == "" {
+		return
+	}
+	projects, ok := doc["projects"].([]any)
+	if !ok || len(projects) < 2 {
+		return
+	}
+	var featured map[string]any
+	var rest []any
+	for _, item := range projects {
+		m, ok := item.(map[string]any)
+		if !ok {
+			rest = append(rest, item)
+			continue
+		}
+		id, _ := m["id"].(string)
+		if id == featuredID {
+			featured = m
+		} else {
+			rest = append(rest, item)
+		}
+	}
+	if featured == nil {
+		return
+	}
+	doc["projects"] = append([]any{featured}, rest...)
+}
+
+func hasToolsOrNotes(doc map[string]any) bool {
+	if note := str(doc, "toolsOtherNote"); note != "" {
+		return true
+	}
+	slugs, ok := doc["selectedToolSlugs"].([]any)
+	return ok && len(slugs) > 0
+}
+
+func hasAuthorizedCountries(doc map[string]any) bool {
+	slugs, ok := doc["authorizedCountries"].([]any)
+	return ok && len(slugs) > 0
+}
+
+func featuredProjectComplete(doc map[string]any) bool {
+	featuredID := str(doc, "featuredProjectId")
+	projects, ok := doc["projects"].([]any)
+	if !ok {
+		return false
+	}
+	for _, item := range projects {
+		m, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		id, _ := m["id"].(string)
+		if featuredID != "" && id != featuredID {
+			continue
+		}
+		if str(m, "title") != "" && str(m, "summary") != "" {
+			return true
+		}
+		if featuredID == "" && str(m, "title") != "" && str(m, "summary") != "" {
+			return true
+		}
+	}
+	return false
+}
+
+func needsStateOrProvince(region string) bool {
+	return region == "us" || region == "ca"
+}
+
+// ProfileComplete mirrors frontend lean wizard completion for embed enqueue gating.
 func ProfileComplete(raw []byte) bool {
 	var doc map[string]any
 	if json.Unmarshal(raw, &doc) != nil || len(doc) == 0 {
 		return false
 	}
 
-	mode := DeriveProfileModeFromDoc(doc)
-	layout := DeriveResumeLayoutFromDoc(doc)
-
-	if str(doc, "fullName") == "" || str(doc, "headline") == "" || str(doc, "region") == "" {
+	region := str(doc, "region")
+	if str(doc, "fullName") == "" || str(doc, "phoneNumber") == "" ||
+		str(doc, "headline") == "" || str(doc, "cityOrDetail") == "" || region == "" {
 		return false
 	}
-	if str(doc, "yearsExperience") == "" || str(doc, "seniorityTarget") == "" || str(doc, "primaryDiscipline") == "" {
-		return false
-	}
-	if str(doc, "paidWorkExperience") == "" {
+	if needsStateOrProvince(region) && str(doc, "stateOrProvince") == "" {
 		return false
 	}
 
-	switch mode {
-	case ModeEarly:
-		if str(doc, "schoolName") == "" || str(doc, "highestEducation") == "" {
-			return false
-		}
-		if layout == LayoutHybrid && countCompleteWorkEntries(doc) < 1 {
-			return false
-		}
-	case ModeTransitional:
-		if str(doc, "honestCareerNarrative") == "" {
-			return false
-		}
-	default:
-		if str(doc, "honestCareerNarrative") == "" || str(doc, "proudestProfessionalWins") == "" {
-			return false
-		}
-	}
-
-	if mode == ModeExperienced && str(doc, "resumePlainText") == "" {
+	if str(doc, "yearsExperience") == "" || str(doc, "seniorityTarget") == "" ||
+		str(doc, "primaryDiscipline") == "" || str(doc, "workArrangement") == "" {
 		return false
 	}
 
-	if str(doc, "skillsCoreNarrative") == "" {
+	if !hasToolsOrNotes(doc) || str(doc, "compensationBand") == "" ||
+		!hasAuthorizedCountries(doc) || str(doc, "startAvailability") == "" {
 		return false
 	}
-	if mode != ModeEarly && str(doc, "highestEducation") == "" {
-		return false
-	}
-	if countCompleteProjects(doc) < MinProjectsRequired(mode) {
-		return false
-	}
-
-	if mode == ModeEarly {
-		if str(doc, "storyHardestTechnicalChallenge") == "" {
-			return false
-		}
-	} else {
-		if str(doc, "storyHardestTechnicalChallenge") == "" || str(doc, "storyDisagreementOrConflict") == "" {
-			return false
-		}
-	}
-
-	if slugs, ok := doc["selectedMotivationSlugs"].([]any); !ok || len(slugs) == 0 {
-		return false
-	}
-	if str(doc, "workArrangement") == "" || str(doc, "visaStatus") == "" {
+	if !featuredProjectComplete(doc) {
 		return false
 	}
 
-	// Compiled resume must exist for downstream embed/match.
+	if str(doc, "storyHardestTechnicalChallenge") == "" {
+		return false
+	}
+
 	if strings.TrimSpace(CompileResumePlainTextFromDoc(doc)) == "" {
 		return false
 	}

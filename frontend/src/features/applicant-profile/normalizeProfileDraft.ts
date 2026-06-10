@@ -29,23 +29,77 @@ function strArr(v: unknown): string[] {
   return v.filter((x): x is string => typeof x === 'string')
 }
 
+function normalizeStackYears(v: unknown): Record<string, string> {
+  if (!isRecord(v)) return {}
+  const out: Record<string, string> = {}
+  for (const [k, val] of Object.entries(v)) {
+    if (typeof val === 'string' && val.trim()) out[k] = val.trim()
+  }
+  return out
+}
+
 function bool(v: unknown, fallback: boolean): boolean {
   return typeof v === 'boolean' ? v : fallback
+}
+
+const KNOWN_EMPLOYMENT_TYPES = new Set([
+  'full_time',
+  'part_time',
+  'internship',
+  'coop',
+  'freelance',
+])
+
+function normalizeEmploymentType(raw: unknown, hasRole: boolean): string {
+  const s = str(raw).trim().toLowerCase().replace(/[\s-]+/g, '_')
+  if (s === 'fulltime' || s === 'permanent' || s === 'employee') return 'full_time'
+  if (s === 'parttime') return 'part_time'
+  if (KNOWN_EMPLOYMENT_TYPES.has(s)) return s
+  return hasRole ? 'full_time' : 'internship'
+}
+
+function bulletLinesFromUnknown(v: unknown): string[] {
+  if (typeof v === 'string') {
+    const trimmed = v.trim()
+    if (!trimmed) return []
+    return trimmed.split(/\n+/).map((line) => line.trim()).filter(Boolean)
+  }
+  if (!Array.isArray(v)) return []
+  return v
+    .map((x) => (typeof x === 'string' ? x.trim() : ''))
+    .filter(Boolean)
+}
+
+function normalizeSummaryBullets(item: Record<string, unknown>): string {
+  const direct = str(item.summaryBullets).trim()
+  if (direct) return direct
+
+  for (const key of ['bullets', 'accomplishments', 'responsibilities', 'highlights', 'description']) {
+    const lines = bulletLinesFromUnknown(item[key])
+    if (lines.length === 0) continue
+    return lines
+      .map((line) => (/^[•\-*]\s/.test(line) ? line : `• ${line}`))
+      .join('\n')
+  }
+  return ''
 }
 
 function normalizeWorkEntries(raw: unknown): WorkEntry[] {
   if (!Array.isArray(raw) || raw.length === 0) return [newWorkEntry()]
   return raw.map((item) => {
     if (!isRecord(item)) return newWorkEntry()
+    const company = str(item.company)
+    const role = str(item.role)
+    const hasRole = Boolean(company.trim() || role.trim())
     return {
       id: typeof item.id === 'string' ? item.id : crypto.randomUUID(),
-      company: str(item.company),
-      role: str(item.role),
+      company,
+      role,
       startDate: str(item.startDate),
       endDate: str(item.endDate),
       isCurrent: bool(item.isCurrent, false),
-      employmentType: str(item.employmentType) || 'internship',
-      summaryBullets: str(item.summaryBullets),
+      employmentType: normalizeEmploymentType(item.employmentType, hasRole),
+      summaryBullets: normalizeSummaryBullets(item),
     }
   })
 }
@@ -112,12 +166,16 @@ export function normalizeProfileDraftFromUnknown(raw: unknown): ApplicantProfile
       ? strArr(raw.selectedNextRoleDesireSlugs)
       : empty.selectedNextRoleDesireSlugs,
     selectedDealbreakerSlugs: strArr(raw.selectedDealbreakerSlugs).length ? strArr(raw.selectedDealbreakerSlugs) : empty.selectedDealbreakerSlugs,
+    authorizedCountries: strArr(raw.authorizedCountries).length ? strArr(raw.authorizedCountries) : empty.authorizedCountries,
     openToEquity: bool(raw.openToEquity, empty.openToEquity),
     openToContract: bool(raw.openToContract, empty.openToContract),
     openToRelocate: bool(raw.openToRelocate, empty.openToRelocate),
     needsVisaSponsorship: bool(raw.needsVisaSponsorship, empty.needsVisaSponsorship),
     comfortableSharingFailureStories: bool(raw.comfortableSharingFailureStories, empty.comfortableSharingFailureStories),
     resumePdfUrl: str(raw.resumePdfUrl),
+    stateOrProvince: str(raw.stateOrProvince),
+    startAvailability: str(raw.startAvailability),
+    featuredProjectId: str(raw.featuredProjectId),
     projects: normalizeProjects(raw.projects),
     workEntries: normalizeWorkEntries(raw.workEntries),
     paidWorkExperience: (str(raw.paidWorkExperience) || '') as ApplicantProfileDraft['paidWorkExperience'],
@@ -127,6 +185,12 @@ export function normalizeProfileDraftFromUnknown(raw: unknown): ApplicantProfile
     courseworkNote: str(raw.courseworkNote),
     profileMode: (str(raw.profileMode) || '') as ApplicantProfileDraft['profileMode'],
     resumeLayout: (str(raw.resumeLayout) || '') as ApplicantProfileDraft['resumeLayout'],
+    profileSubmittedAt: str(raw.profileSubmittedAt),
+    country: str(raw.country),
+    englishProficiency: str(raw.englishProficiency),
+    stackYears: normalizeStackYears(raw.stackYears),
+    workAuthorizedInUS: bool(raw.workAuthorizedInUS, empty.workAuthorizedInUS),
+    workAuthorizedInCanada: bool(raw.workAuthorizedInCanada, empty.workAuthorizedInCanada),
   }
 
   if (merged.timezone && !KNOWN_TIMEZONE_SLUGS.has(merged.timezone)) {

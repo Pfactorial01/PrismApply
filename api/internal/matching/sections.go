@@ -36,7 +36,7 @@ const (
 const (
 	ChunkSimilarityThreshold = 0.55
 	MinMatchedChunks         = 2
-	FinalScoreFloor          = 0.55
+	FinalScoreFloor          = 0.49 // TEMP: lowered from 0.55 for local matching experiments
 )
 
 // Score weights for Layer 2 composite score.

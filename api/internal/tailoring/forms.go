@@ -82,7 +82,10 @@ func resolveIdentityAnswer(field ClassifiedField, identity map[string]string, pr
 		return orDefault(identity["githubUrl"], profileStr(profile, "githubUrl"))
 	}
 	if matchLabel(label, []*regexp.Regexp{regexp.MustCompile(`(?i)\bportfolio\b`), regexp.MustCompile(`(?i)\bwebsite\b`)}) {
-		return orDefault(identity["portfolioUrl"], profileStr(profile, "portfolioUrl"))
+		if u := orDefault(identity["portfolioUrl"], profileStr(profile, "portfolioUrl")); u != "" {
+			return u
+		}
+		return orDefault(identity["githubUrl"], profileStr(profile, "githubUrl"))
 	}
 	if matchLabel(label, []*regexp.Regexp{regexp.MustCompile(`(?i)\bcurrent company\b`)}) {
 		return profileStr(profile, "currentCompany")
@@ -157,8 +160,8 @@ func resolveComplianceSelect(field ClassifiedField, profile map[string]any) (str
 		return pickOption(field.Options, "No"), false
 	}
 	if (strings.Contains(label, "work authorization") || strings.Contains(label, "authorized to work")) && len(field.Options) > 0 {
-		if !needsSponsor && (visa == "citizen_pr" || visa == "") {
-			return pickOption(field.Options, "Yes"), false
+		if v, ok := inferWorkAuthSelect(field, profile); ok {
+			return v, false
 		}
 	}
 	if strings.Contains(label, "onsite") && strings.Contains(label, "office") && len(field.Options) > 0 {
@@ -189,14 +192,18 @@ func resolveLocationAnswer(field ClassifiedField, identity map[string]string, pr
 	if matchLabel(label, []*regexp.Regexp{regexp.MustCompile(`(?i)\bremote\b`)}) {
 		return orDefault(identity["workArrangement"], profileStr(profile, "workArrangement"))
 	}
-	return formatLocationAnswer(
+	return formatLocationWithCountry(
 		profileStr(profile, "cityOrDetail"),
 		orDefault(identity["region"], profileStr(profile, "region")),
+		orDefault(profileStr(profile, "country"), identity["country"]),
 	)
 }
 
 func resolveSelectAnswer(field ClassifiedField, identity map[string]string, profile map[string]any) (string, bool) {
 	if val, low := resolveComplianceSelect(field, profile); val != "" && !low {
+		return val, false
+	}
+	if val, low := resolveInferableSelect(field, profile); val != "" && !low {
 		return val, false
 	}
 	raw := resolveIdentityAnswer(field, identity, profile)
@@ -237,7 +244,17 @@ func answerBatchFields(ctx context.Context, cfg config.Config, fields []Classifi
 			val := resolveLocationAnswer(f, identity, profile)
 			deterministic = append(deterministic, FormFieldAnswer{Label: f.Label, Value: val, LowConfidence: f.Required && val == ""})
 		case FieldSelect:
-			val, low := resolveSelectAnswer(f, identity, profile)
+			val, low := resolveComplianceSelect(f, profile)
+			if val != "" && !low {
+				deterministic = append(deterministic, FormFieldAnswer{Label: f.Label, Value: val})
+				continue
+			}
+			val, low = resolveInferableSelect(f, profile)
+			if val != "" && !low {
+				deterministic = append(deterministic, FormFieldAnswer{Label: f.Label, Value: normalizeSelectValue(val, f.Options)})
+				continue
+			}
+			val, low = resolveSelectAnswer(f, identity, profile)
 			if val != "" && !low {
 				deterministic = append(deterministic, FormFieldAnswer{Label: f.Label, Value: val})
 			} else {
@@ -262,9 +279,12 @@ func answerBatchFields(ctx context.Context, cfg config.Config, fields []Classifi
 		return deterministic, nil
 	}
 
-	system := `Fill short application form fields from profile data only. Never invent facts. Empty string if unknown.
-For yes/no or select fields with Yes/No options, answer strictly "Yes" or "No" based on profile preferences (openToContract, openToRelocate, needsVisaSponsorship, work authorization). Do not answer with location unless the question asks for location.
-For select fields with options, output exact option text when possible.`
+	system := `Fill application form fields from profile data only. Never invent facts.
+For every field you must return an answer. Use empty string only if truly unknown.
+For yes/no or select fields with Yes/No options, answer strictly "Yes" or "No" based on profile.
+For select fields with options, output EXACT option text from the options list when possible.
+Infer years-of-experience, English level, compensation, notice period, and region from structured context when explicit profile fields exist.
+Do not claim US/Canada work authorization unless workAuthorizedInUS/workAuthorizedInCanada is true.`
 
 	var fieldsDesc strings.Builder
 	for i, f := range needsLLM {
@@ -291,9 +311,10 @@ For select fields with options, output exact option text when possible.`
 		profJSON = profJSON[:6000]
 	}
 
-	user := fmt.Sprintf("JD context: %s — themes: %s\n\nFields:\n%s\nProfile identity:\n%s\n\nProfile preferences: openToContract=%t openToRelocate=%t needsVisaSponsorship=%t\n\nProfile excerpt:\n%s",
+	user := fmt.Sprintf("JD context: %s — themes: %s\n\nFields:\n%s\nProfile identity:\n%s\n\nProfile preferences: openToContract=%t openToRelocate=%t needsVisaSponsorship=%t\n%s\n\nProfile excerpt:\n%s",
 		role, strings.Join(themes, ", "), fieldsDesc.String(), string(idJSON),
 		boolPref(profile, "openToContract"), boolPref(profile, "openToRelocate"), boolPref(profile, "needsVisaSponsorship"),
+		batchFormUserSuffix(profile),
 		string(profJSON))
 
 	var parsed struct {
@@ -308,17 +329,13 @@ For select fields with options, output exact option text when possible.`
 		return nil, err
 	}
 
+	var rows []batchAnswerRow
 	for _, a := range parsed.Answers {
-		ans := FormFieldAnswer{
-			Label:         a.Label,
-			Value:         a.Value,
-			LowConfidence: strings.TrimSpace(a.Value) == "",
-		}
-		if a.SourceField != "" {
-			ans.SourceRefs = []SourceRef{{Field: a.SourceField, Excerpt: truncate(a.Value, 80)}}
-		}
-		deterministic = append(deterministic, ans)
+		rows = append(rows, batchAnswerRow{
+			Position: a.Position, Label: a.Label, Value: a.Value, SourceField: a.SourceField,
+		})
 	}
+	deterministic = append(deterministic, mergeBatchAnswers(needsLLM, profile, rows)...)
 	return deterministic, nil
 }
 

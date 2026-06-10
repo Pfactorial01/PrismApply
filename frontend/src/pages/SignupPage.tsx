@@ -155,9 +155,8 @@ export function SignupPage() {
             className="mt-0.5"
           />
           <span className="text-sm leading-relaxed text-muted-foreground">
-            <span className="font-medium text-foreground">Pilot stage — tech roles only.</span>{' '}
-            PrismApply is in an early pilot and currently focuses on tech roles. Other industries
-            will be added later. I understand this and want to create an account anyway.
+            <span className="font-medium text-foreground">Tech roles only.</span>{' '}
+            More industries are coming. I understand and want to sign up.
           </span>
         </label>
         {error ? (

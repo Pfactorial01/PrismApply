@@ -28,6 +28,7 @@ func NewRouter(h *handlers.Handlers) http.Handler {
 	mux.HandleFunc("POST /api/profile/", h.PostProfileSubmit)
 	mux.HandleFunc("POST /api/profile/submit", h.PostProfileSubmit)
 	mux.HandleFunc("POST /api/resume/upload", h.PostResumeUpload)
+	mux.HandleFunc("POST /api/resume/parse", h.PostResumeParse)
 	mux.HandleFunc("GET /api/applications", h.GetApplications)
 	mux.HandleFunc("GET /api/applications/{id}/resume.pdf", h.GetApplicationResumePDF)
 	mux.HandleFunc("GET /api/applications/{id}/cover-letter.pdf", h.GetApplicationCoverLetterPDF)

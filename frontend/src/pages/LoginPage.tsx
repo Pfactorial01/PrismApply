@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react'
 import { AuthPageLayout } from '@/components/auth/AuthPageLayout'
 import { authMeQueryKey, loginRequest, sanitizeRedirectParam } from '@/lib/auth'
 import { applicantProfileQueryKey, fetchApplicantProfile } from '@/lib/profileApi'
+import { isProfileSubmitted } from '@/features/applicant-profile/profileCompletion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -29,7 +30,7 @@ export function LoginPage() {
 
   async function resolveRedirect() {
     const profile = await fetchApplicantProfile()
-    if (profile.resumePlainText.trim()) {
+    if (isProfileSubmitted(profile)) {
       return redirectTo ?? '/'
     }
     return '/profile'

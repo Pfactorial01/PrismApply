@@ -150,12 +150,17 @@ const EXAMPLES: Record<ExampleTier, Partial<Record<FieldExampleKey, FieldExample
       answer: 'https://github.com/yourname/campus-events-api (README includes API docs and architecture overview)',
     },
     storyHardestTechnicalChallenge: {
-      question: 'Hardest technical problem (project, class, or internship ok)',
+      question: 'Hardest technical challenge',
       answer:
         'During orientation week our events API intermittently dropped RSVPs when two students clicked at the same time. Support messages from club admins showed duplicate success toasts but missing rows in the database.\n\nI reproduced the race locally with two browser tabs and concurrent curl scripts, confirmed a read-then-write gap without transaction isolation, and fixed it with a unique constraint on (event_id, user_id) plus INSERT … ON CONFLICT DO UPDATE. I added an integration test that hammers 50 parallel requests and verified exactly one row per user.\n\nLesson learned: assume concurrency from day one on anything user-facing, not just after production traffic.',
     },
+    proudestProfessionalWins: {
+      question: 'Proudest win',
+      answer:
+        'Campus Events API during orientation: ~200 students RSVP\'d across 40 events in one week with zero data-loss incidents. I owned the backend solo — schema, Go API, deploy on Fly.io, and on-call during the week.\n\nWhen timezone display broke for two clubs, I shipped a hotfix within 2 hours after reproducing with their test accounts. Club presidents emailed thanks; that was the first time I felt like my code mattered to real users outside a grade.',
+    },
     storyDisagreementOrConflict: {
-      question: 'Working with others — team project, pair programming, or feedback',
+      question: 'Conflict or disagreement',
       answer:
         'On a group database course project, one teammate wanted a single denormalized table to “move faster.” I was worried about update anomalies when we scaled test data.\n\nInstead of arguing in Slack, I proposed we each sketch a schema over one lunch, load 10k sample rows, and compare query plans and row counts for three report types the rubric required. My normalized design was slightly more joins but cleaner updates; we agreed on a hybrid — normalized core with one materialized view for the heaviest report.\n\nWe split migration scripts and I documented the decision in our README so the professor could follow our reasoning.',
     },
@@ -211,7 +216,7 @@ const EXAMPLES: Record<ExampleTier, Partial<Record<FieldExampleKey, FieldExample
         'I started in customer support at a logistics SaaS company, which taught me how broken integrations feel to end users. I completed a full-time bootcamp in 2019, joined a small startup building inventory APIs for two years, then moved to Northwind Health as a junior backend engineer.\n\nOver four years at Northwind I grew into the primary owner of our patient billing integration service — webhooks from payment providers, idempotent processing, reconciliation with finance, and the on-call runbooks. I led the migration from a monolith endpoint to SQS + Lambda workers, cut failed payment retries by ~30%, and mentored one intern who returned full-time.\n\nBefore Northwind I learned fast iteration at a 15-person startup; at Northwind I learned compliance-adjacent rigor, staged rollouts, and how to push back on scope with data. I am now looking for either deeper platform ownership or a smaller company where I can have broader impact without losing production discipline.',
     },
     proudestProfessionalWins: {
-      question: 'Proudest wins (with metrics if you have them)',
+      question: 'Proudest win',
       answer:
         '- Led migration of billing webhooks from synchronous monolith handlers to SQS + Lambda with dead-letter queues and replay tooling; duplicate charges reported to support dropped from ~12/month to zero over six months\n- Designed idempotency keys and a nightly reconciliation job processing ~40k provider events/day; finance sign-off on audit trail for SOC2 prep\n- Drove team postmortem culture after a config outage — added staged rollouts and feature flags; similar incidents did not recur in the following year\n- Mentored bootcamp intern through first production PR to solo feature in seven weeks; they converted to FTE',
     },
@@ -232,12 +237,12 @@ const EXAMPLES: Record<ExampleTier, Partial<Record<FieldExampleKey, FieldExample
         'Adopted by two other teams at Northwind (billing + notifications). ~400 GitHub stars, featured in internal eng newsletter Q3 2024. Reduced duplicate retry implementations — estimated ~200 lines removed across repos. External users have opened issues that improved our edge-case handling for async contexts.',
     },
     storyHardestTechnicalChallenge: {
-      question: 'Hardest technical problem you have solved',
+      question: 'Hardest technical challenge',
       answer:
         'During a payment provider outage we received duplicate and out-of-order webhook events for three days. Our monolith handler assumed at-most-once delivery; finance reported mismatched ledger totals and support saw duplicate charges.\n\nI designed a dedupe store keyed by provider event ID with TTL, moved processing to idempotent workers, and built lag dashboards plus a manual replay tool with finance approval workflow. We backfilled three days of events without double-charging customers — verified by reconciliation scripts run with finance in a shared war room.\n\nAfterward I wrote the runbook we still use for provider incidents and added integration tests that simulate duplicate delivery.',
     },
     storyDisagreementOrConflict: {
-      question: 'A disagreement with a teammate or manager',
+      question: 'Conflict or disagreement',
       answer:
         'Product wanted a hard cutover date for migrating billing webhooks before holiday freeze. I believed the new pipeline needed a shadow mode week comparing outputs side-by-side.\n\nI put together a short doc with risk scenarios (duplicate charges, missed events, rollback steps) and proposed shadow mode with automated diff alerts. PM initially pushed back on timeline; I offered to staff on-call myself during shadow week if we slipped.\n\nWe ran shadow mode, caught two edge cases in reconciliation, shipped on the original date with zero customer-visible regressions. PM thanked the team in retro for pushing back with data — that built trust for later negotiations.',
     },
@@ -328,7 +333,7 @@ const EXAMPLES: Record<ExampleTier, Partial<Record<FieldExampleKey, FieldExample
         'Eight years across fintech and healthtech after a CS degree. I joined a Series B startup as engineer #8, built inventory and billing APIs, and learned to ship under uncertainty. After three years I moved to a larger healthtech company where I grew into tech lead for a platform-adjacent group and shipped their first SOC2-ready audit trail.\n\nAt Acme Payments for the last three years I tech-lead ledger ingestion — provider webhooks, normalization, idempotent writes, reconciliation with finance — processing ~2M events/day across US and EU. I re-architected from batch jobs to streaming, cut p99 lag from 45 minutes to under 3 minutes, and reduced incident MTTR ~40% through SLOs, runbooks, and blameless postmortems.\n\nI care about reliability, clear service boundaries, and developing mid-level engineers into owners. Looking for staff-scope IC problems with strong peers and a culture that rewards technical leadership without forcing management.',
     },
     proudestProfessionalWins: {
-      question: 'Proudest wins (with metrics if you have them)',
+      question: 'Proudest win',
       answer:
         '- Re-architected ledger ingestion from nightly batch jobs to Kafka-based streaming with deterministic replay; p99 lag dropped from 45m to under 3m and finance close cycle shortened by two business days\n- Reduced incident MTTR ~40% org-wide on my domain through SLOs, runbook library, and blameless postmortems with tracked action items\n- Convinced three product squads to adopt shared idempotency standards — cut duplicate-processing incidents from ~6/quarter to 0 over 18 months\n- Hired and ramped three engineers; two promoted to mid-level under my mentorship and now lead their own services',
     },
@@ -343,12 +348,12 @@ const EXAMPLES: Record<ExampleTier, Partial<Record<FieldExampleKey, FieldExample
         'Three product squads each built incompatible idempotency handling — duplicate charges and support pain during provider incidents.\n\nI had no org chart authority over two of the teams. I built a reference library, wrote migration guides with effort estimates, ran office hours for six weeks, and paired with each team for one sprint to land their first PR.\n\nAdoption took two quarters but duplicate-processing incidents went to zero over the following 18 months. VP Eng cited this as a model for “horizontal leadership” in staff promo discussions.',
     },
     storyHardestTechnicalChallenge: {
-      question: 'Hardest technical problem you have solved',
+      question: 'Hardest technical challenge',
       answer:
         'Acme\'s ledger ingestion could not handle provider reordering and at-least-once delivery at ~2M events/day — batch jobs created 45-minute lag and finance could not close books reliably.\n\nI led a multi-quarter re-architecture to streaming ingestion with event versioning, deterministic replay tooling, lag SLOs with error budgets, and finance-approved reconciliation windows. We migrated market-by-market with shadow comparison and rollback triggers.\n\np99 lag dropped under 3 minutes; finance close shortened by two business days. Hardest part was organizational — aligning legal, finance, and three eng teams on cutover criteria, not just the Kafka topology.',
     },
     storyDisagreementOrConflict: {
-      question: 'A disagreement with a teammate or manager',
+      question: 'Conflict or disagreement',
       answer:
         'VP Product wanted big-bang EU region expansion to hit a board milestone. I argued for Ireland-first with feature flags, synthetic load tests, and quota discovery before multi-country rollout.\n\nI wrote a risk doc with Sev-1 scenarios (provider limits, data residency gaps, on-call staffing) and proposed a phased plan with explicit go/no-go metrics. VP initially called it “too slow”; I offered to staff a tiger team if we could sequence markets.\n\nWe launched Ireland, hit quota limits early in staging (would have been production Sev-1), fixed them, then rolled EU over six weeks with zero Sev-1s. VP retroactively thanked me for “saving the launch.”',
     },
@@ -489,4 +494,20 @@ export function getFieldExample(
 ): FieldExample | null {
   const tier = seniorityToExampleTier(seniorityTarget)
   return EXAMPLES[tier][key] ?? EXAMPLES.junior[key] ?? SHARED[key] ?? null
+}
+
+export function getFieldExamplesForAllTiers(
+  key: FieldExampleKey,
+): Array<{ tier: ExampleTier; example: FieldExample }> {
+  const tiers: ExampleTier[] = ['junior', 'mid', 'senior']
+  const out: Array<{ tier: ExampleTier; example: FieldExample }> = []
+  for (const tier of tiers) {
+    const example = EXAMPLES[tier][key] ?? (tier === 'junior' ? SHARED[key] : undefined)
+    if (example) out.push({ tier, example })
+  }
+  return out
+}
+
+export function hasFieldExample(key: FieldExampleKey): boolean {
+  return getFieldExamplesForAllTiers(key).length > 0
 }

@@ -40,6 +40,7 @@ var slugLabels = map[string]string{
 	"latam": "Latin America",
 	"apac":  "Asia–Pacific",
 	"mea":   "Middle East / Africa",
+	"ng":    "Nigeria",
 	"other": "Other",
 }
 

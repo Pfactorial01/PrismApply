@@ -19,6 +19,7 @@ import {
   applicantProfileQueryKeyFor,
   fetchApplicantProfile,
 } from '@/lib/profileApi'
+import { isProfileSubmitted } from '@/features/applicant-profile/profileCompletion'
 import { useTheme } from '@/lib/theme'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -51,7 +52,7 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
     enabled: Boolean(user?.id),
   })
 
-  const profileComplete = Boolean(profile?.resumePlainText?.trim())
+  const profileUnlocked = isProfileSubmitted(profile)
   const firstName = getProfileFirstName(profile)
   const avatarLetter = (firstName?.charAt(0) ?? user?.email?.charAt(0) ?? '?').toUpperCase()
 
@@ -72,11 +73,11 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
         <span className="text-sm font-semibold text-foreground">PrismApply</span>
       </div>
 
-      {!profileComplete && !isOnProfile ? (
+      {!profileUnlocked && !isOnProfile ? (
         <div className="mx-3 rounded-md border border-warning/40 bg-warning/15 px-3 py-2 text-xs text-warning-foreground">
           <div className="flex items-start gap-2">
             <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-            <span>Complete your profile to access all features.</span>
+            <span>Save your profile to unlock Overview, Applications, and Settings.</span>
           </div>
         </div>
       ) : null}
@@ -85,7 +86,7 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
 
       <nav className="flex flex-1 flex-col gap-1 p-3">
         {FULL_NAV.map((item) => {
-          const blocked = item.requiresProfile && !profileComplete
+          const blocked = item.requiresProfile && !profileUnlocked
           return (
             <Link
               key={item.to}

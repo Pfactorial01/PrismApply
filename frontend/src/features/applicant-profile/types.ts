@@ -34,9 +34,12 @@ export type ApplicantProfileDraft = {
   currentCompany: string
   currentStatus: string
   region: string
+  stateOrProvince: string
+  country: string
   cityOrDetail: string
   timezone: string
   timezoneOtherNote: string
+  englishProficiency: string
   linkedInUrl: string
   portfolioUrl: string
   githubUrl: string
@@ -63,6 +66,8 @@ export type ApplicantProfileDraft = {
   selectedRampAreaSlugs: string[]
   selectedToolSlugs: string[]
   toolsOtherNote: string
+  /** Years of experience per stack slug for application forms (go, react, node, python, python_data, aws, …) */
+  stackYears: Record<string, string>
   highestEducation: string
   educationDetails: string
   schoolName: string
@@ -103,15 +108,23 @@ export type ApplicantProfileDraft = {
   openToEquity: boolean
   openToContract: boolean
   openToRelocate: boolean
+  authorizedCountries: string[]
+  startAvailability: string
+  featuredProjectId: string
   visaStatus: string
   needsVisaSponsorship: boolean
   workAuthOtherNote: string
+  workAuthorizedInUS: boolean
+  workAuthorizedInCanada: boolean
 
   /** Optional behavioral meta */
   comfortableSharingFailureStories: boolean
 
   /** R2 public URL for uploaded resume PDF */
   resumePdfUrl: string
+
+  /** ISO timestamp set on first Save profile submit */
+  profileSubmittedAt: string
 }
 
 export function newWorkEntry(): WorkEntry {
@@ -122,7 +135,7 @@ export function newWorkEntry(): WorkEntry {
     startDate: '',
     endDate: '',
     isCurrent: false,
-    employmentType: 'internship',
+    employmentType: 'full_time',
     summaryBullets: '',
   }
 }
@@ -151,9 +164,12 @@ export function createEmptyProfileDraft(): ApplicantProfileDraft {
     currentCompany: '',
     currentStatus: '',
     region: '',
+    stateOrProvince: '',
+    country: '',
     cityOrDetail: '',
     timezone: '',
     timezoneOtherNote: '',
+    englishProficiency: '',
     linkedInUrl: '',
     portfolioUrl: '',
     githubUrl: '',
@@ -180,6 +196,7 @@ export function createEmptyProfileDraft(): ApplicantProfileDraft {
     selectedRampAreaSlugs: [],
     selectedToolSlugs: [],
     toolsOtherNote: '',
+    stackYears: {},
     highestEducation: '',
     educationDetails: '',
     schoolName: '',
@@ -220,11 +237,17 @@ export function createEmptyProfileDraft(): ApplicantProfileDraft {
     openToEquity: false,
     openToContract: false,
     openToRelocate: false,
+    authorizedCountries: [],
+    startAvailability: '',
+    featuredProjectId: '',
     visaStatus: '',
     needsVisaSponsorship: false,
     workAuthOtherNote: '',
+    workAuthorizedInUS: false,
+    workAuthorizedInCanada: false,
 
     comfortableSharingFailureStories: true,
     resumePdfUrl: '',
+    profileSubmittedAt: '',
   }
 }

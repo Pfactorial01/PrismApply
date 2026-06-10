@@ -34,9 +34,11 @@ export function getSampleApplicantProfile(): ApplicantProfileDraft {
 
     fullName: 'Adeoye Adebayo',
     email: 'adeoye@example.com',
+    phoneNumber: '+234 800 000 0000',
     preferredName: 'Adeoye',
     headline: 'Senior Software Engineer | AI Orchestration, Scalable Backends & Full-Stack Systems',
-    region: 'mea',
+    region: 'us',
+    stateOrProvince: 'CA',
     cityOrDetail: 'Lagos, Nigeria',
     timezone: 'other',
     timezoneOtherNote: 'WAT (West Africa Time) / UTC+1',
@@ -97,6 +99,7 @@ TypeScript, Go, Node.js, Python, SQL | AWS, GCP, Docker | PostgreSQL, Redis, Mon
     educationDetails: 'Senior-level software engineering with a focus on full-stack systems and AI.',
 
     projects: [projectVibeFlow, projectPropertyApi],
+    featuredProjectId: projectVibeFlow.id,
 
     storyHardestTechnicalChallenge:
       'Optimizing data ingestion for high-volume real estate records while maintaining strict normalization standards, and researching state-of-the-art mitigations for GPU cold starts in serverless environments.',
@@ -129,6 +132,8 @@ TypeScript, Go, Node.js, Python, SQL | AWS, GCP, Docker | PostgreSQL, Redis, Mon
     openToEquity: true,
     openToContract: true,
     openToRelocate: true,
+    authorizedCountries: ['us', 'ca', 'uk'],
+    startAvailability: '1_month',
     visaStatus: 'need_sponsorship',
     needsVisaSponsorship: true,
     workAuthOtherNote:

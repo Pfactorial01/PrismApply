@@ -38,3 +38,27 @@ export async function uploadResume(
     r2Url: raw.r2Url,
   }
 }
+
+/** Parse pasted resume text (no PDF upload). */
+export async function parseResumeText(resumeText: string): Promise<ApplicantProfileDraft> {
+  const res = await fetch(apiUrl('/api/resume/parse'), {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ resumeText }),
+  })
+
+  if (!res.ok) {
+    let message = 'Parse failed'
+    try {
+      const body = (await res.json()) as { message?: string; error?: string }
+      message = body.message ?? body.error ?? message
+    } catch {
+      message = `Parse failed (${res.status})`
+    }
+    throw new Error(message)
+  }
+
+  const raw = (await res.json()) as { profile: unknown }
+  return normalizeProfileDraftFromUnknown(raw.profile)
+}

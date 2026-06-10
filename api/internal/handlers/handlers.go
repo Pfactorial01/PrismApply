@@ -230,6 +230,14 @@ func (h *Handlers) upsertProfile(w http.ResponseWriter, r *http.Request, enqueue
 		return
 	}
 	raw = normalized
+	if enqueueEmbed {
+		stamped, err := profilemode.StampProfileSubmittedAt(raw)
+		if err != nil {
+			jsonx.Write(w, http.StatusBadRequest, map[string]string{"message": "invalid profile JSON"})
+			return
+		}
+		raw = stamped
+	}
 	if err := repo.UpsertProfile(r.Context(), h.Pool, id, raw); err != nil {
 		jsonx.Write(w, http.StatusBadRequest, map[string]string{"message": err.Error()})
 		return

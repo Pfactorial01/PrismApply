@@ -19,10 +19,11 @@ export const PAID_WORK_EXPERIENCE_OPTIONS: SelectOption[] = [
 ]
 
 export const WORK_ENTRY_TYPE_OPTIONS: SelectOption[] = [
+  { value: 'full_time', label: 'Full-time' },
+  { value: 'part_time', label: 'Part-time' },
   { value: 'internship', label: 'Internship' },
   { value: 'coop', label: 'Co-op' },
   { value: 'freelance', label: 'Freelance / contract' },
-  { value: 'part_time', label: 'Part-time' },
 ]
 
 export const SENIORITY_OPTIONS: SelectOption[] = [
@@ -64,6 +65,143 @@ export const REGION_OPTIONS: SelectOption[] = [
   { value: 'mea', label: 'Middle East / Africa' },
   { value: 'remote_first', label: 'Fully distributed (no fixed country)' },
   { value: 'other', label: 'Other' },
+]
+
+/** Work authorization — countries where the applicant can legally work. */
+export const AUTHORIZED_COUNTRY_OPTIONS: readonly (readonly [string, string])[] = [
+  ['us', 'United States'],
+  ['ca', 'Canada'],
+  ['uk', 'United Kingdom'],
+  ['eu', 'European Union / Schengen'],
+  ['au', 'Australia'],
+  ['nz', 'New Zealand'],
+  ['in', 'India'],
+  ['sg', 'Singapore'],
+  ['jp', 'Japan'],
+  ['mx', 'Mexico'],
+  ['br', 'Brazil'],
+  ['ng', 'Nigeria'],
+  ['other', 'Other (see notes)'],
+] as const
+
+/** US / Canada — forms ask sponsorship separately from other countries. */
+export const MAJOR_MARKET_AUTH_OPTIONS: SelectOption[] = [
+  { value: '', label: 'Not seeking roles here' },
+  { value: 'yes', label: 'Authorized — no sponsorship needed' },
+  { value: 'needs_sponsorship', label: 'Would need visa sponsorship' },
+]
+
+export const OTHER_AUTHORIZED_COUNTRY_OPTIONS = AUTHORIZED_COUNTRY_OPTIONS.filter(
+  ([slug]) => slug !== 'us' && slug !== 'ca',
+)
+
+export const ENGLISH_PROFICIENCY_OPTIONS: SelectOption[] = [
+  { value: '', label: 'Select an option' },
+  { value: 'native', label: 'Native / bilingual English' },
+  { value: 'fluent', label: 'Fluent' },
+  { value: 'professional', label: 'Professional working' },
+  { value: 'conversational', label: 'Conversational' },
+]
+
+/** Stored in profile.stackYears — used to pre-fill job application forms. */
+export const STACK_YEARS_OPTIONS: SelectOption[] = [
+  { value: '', label: 'Select an option' },
+  { value: 'none', label: 'No experience' },
+  { value: 'less_than_2', label: 'Less than 2 years' },
+  { value: '1_2', label: '1–2 years' },
+  { value: '2_4', label: '2–4 years' },
+  { value: '3_plus', label: '3+ years' },
+]
+
+export const STACK_YEAR_FIELD_DEFS: readonly { key: string; label: string; toolSlugs?: string[] }[] = [
+  { key: 'react', label: 'React', toolSlugs: ['react'] },
+  { key: 'node', label: 'Node.js', toolSlugs: ['node'] },
+  { key: 'python', label: 'Python' },
+  { key: 'python_data', label: 'Python (data: NumPy, pandas, etc.)' },
+  { key: 'go', label: 'Go' },
+  { key: 'aws', label: 'AWS', toolSlugs: ['aws'] },
+  { key: 'distributed_systems', label: 'Distributed / enterprise systems' },
+]
+
+export const US_STATE_OPTIONS: SelectOption[] = [
+  { value: '', label: 'Select state' },
+  { value: 'AL', label: 'Alabama' },
+  { value: 'AK', label: 'Alaska' },
+  { value: 'AZ', label: 'Arizona' },
+  { value: 'AR', label: 'Arkansas' },
+  { value: 'CA', label: 'California' },
+  { value: 'CO', label: 'Colorado' },
+  { value: 'CT', label: 'Connecticut' },
+  { value: 'DE', label: 'Delaware' },
+  { value: 'FL', label: 'Florida' },
+  { value: 'GA', label: 'Georgia' },
+  { value: 'HI', label: 'Hawaii' },
+  { value: 'ID', label: 'Idaho' },
+  { value: 'IL', label: 'Illinois' },
+  { value: 'IN', label: 'Indiana' },
+  { value: 'IA', label: 'Iowa' },
+  { value: 'KS', label: 'Kansas' },
+  { value: 'KY', label: 'Kentucky' },
+  { value: 'LA', label: 'Louisiana' },
+  { value: 'ME', label: 'Maine' },
+  { value: 'MD', label: 'Maryland' },
+  { value: 'MA', label: 'Massachusetts' },
+  { value: 'MI', label: 'Michigan' },
+  { value: 'MN', label: 'Minnesota' },
+  { value: 'MS', label: 'Mississippi' },
+  { value: 'MO', label: 'Missouri' },
+  { value: 'MT', label: 'Montana' },
+  { value: 'NE', label: 'Nebraska' },
+  { value: 'NV', label: 'Nevada' },
+  { value: 'NH', label: 'New Hampshire' },
+  { value: 'NJ', label: 'New Jersey' },
+  { value: 'NM', label: 'New Mexico' },
+  { value: 'NY', label: 'New York' },
+  { value: 'NC', label: 'North Carolina' },
+  { value: 'ND', label: 'North Dakota' },
+  { value: 'OH', label: 'Ohio' },
+  { value: 'OK', label: 'Oklahoma' },
+  { value: 'OR', label: 'Oregon' },
+  { value: 'PA', label: 'Pennsylvania' },
+  { value: 'RI', label: 'Rhode Island' },
+  { value: 'SC', label: 'South Carolina' },
+  { value: 'SD', label: 'South Dakota' },
+  { value: 'TN', label: 'Tennessee' },
+  { value: 'TX', label: 'Texas' },
+  { value: 'UT', label: 'Utah' },
+  { value: 'VT', label: 'Vermont' },
+  { value: 'VA', label: 'Virginia' },
+  { value: 'WA', label: 'Washington' },
+  { value: 'WV', label: 'West Virginia' },
+  { value: 'WI', label: 'Wisconsin' },
+  { value: 'WY', label: 'Wyoming' },
+  { value: 'DC', label: 'District of Columbia' },
+]
+
+export const CA_PROVINCE_OPTIONS: SelectOption[] = [
+  { value: '', label: 'Select province / territory' },
+  { value: 'AB', label: 'Alberta' },
+  { value: 'BC', label: 'British Columbia' },
+  { value: 'MB', label: 'Manitoba' },
+  { value: 'NB', label: 'New Brunswick' },
+  { value: 'NL', label: 'Newfoundland and Labrador' },
+  { value: 'NS', label: 'Nova Scotia' },
+  { value: 'NT', label: 'Northwest Territories' },
+  { value: 'NU', label: 'Nunavut' },
+  { value: 'ON', label: 'Ontario' },
+  { value: 'PE', label: 'Prince Edward Island' },
+  { value: 'QC', label: 'Quebec' },
+  { value: 'SK', label: 'Saskatchewan' },
+  { value: 'YT', label: 'Yukon' },
+]
+
+export const START_AVAILABILITY_OPTIONS: SelectOption[] = [
+  { value: '', label: 'Select an option' },
+  { value: 'immediately', label: 'Immediately' },
+  { value: '2_weeks', label: 'Within 2 weeks' },
+  { value: '1_month', label: 'Within 1 month' },
+  { value: '2_3_months', label: '2–3 months' },
+  { value: 'not_sure', label: 'Not sure yet' },
 ]
 
 export const TIMEZONE_OPTIONS: SelectOption[] = [

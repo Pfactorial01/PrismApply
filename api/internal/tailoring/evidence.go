@@ -8,14 +8,21 @@ import (
 func buildIdentityBlock(p map[string]any) map[string]string {
 	identity := map[string]string{}
 	for _, key := range []string{
-		"fullName", "email", "preferredName", "phoneNumber", "headline", "currentCompany", "region", "cityOrDetail",
-		"timezone", "linkedInUrl", "portfolioUrl", "githubUrl", "otherLinks",
+		"fullName", "email", "preferredName", "phoneNumber", "headline", "currentCompany", "region", "country", "cityOrDetail",
+		"timezone", "timezoneOtherNote", "englishProficiency", "linkedInUrl", "portfolioUrl", "githubUrl", "otherLinks",
 		"visaStatus", "workArrangement", "companiesYouAdmire",
-		"yearsExperience", "seniorityTarget",
+		"yearsExperience", "seniorityTarget", "startAvailability", "compensationBand", "compensationExtraNote",
+		"workAuthOtherNote",
 	} {
 		if v := profileStr(p, key); v != "" {
 			identity[key] = v
 		}
+	}
+	if v, ok := p["workAuthorizedInUS"].(bool); ok && v {
+		identity["workAuthorizedInUS"] = "true"
+	}
+	if v, ok := p["workAuthorizedInCanada"].(bool); ok && v {
+		identity["workAuthorizedInCanada"] = "true"
 	}
 	if v, ok := p["needsVisaSponsorship"].(bool); ok && v {
 		identity["needsVisaSponsorship"] = "true"

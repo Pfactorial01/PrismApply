@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+
 	"prismapply/api/internal/jsonx"
 	"prismapply/api/internal/repo"
 )
@@ -66,30 +68,26 @@ func (h *Handlers) PostResumeUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r2Key := fmt.Sprintf("resumes/%s/original.pdf", userID.String())
-
-	if h.R2 == nil || !h.R2.Enabled() {
-		jsonx.Write(w, http.StatusInternalServerError, map[string]string{"message": "R2 storage not configured"})
-		return
-	}
-
-	if err := h.R2.Upload(r2Key, bytes.NewReader(pdfData), "application/pdf"); err != nil {
-		slog.Error("r2 upload failed", "error", err, "user_id", userID.String())
-		jsonx.Write(w, http.StatusInternalServerError, map[string]string{"message": "failed to store resume"})
-		return
-	}
-
-	r2URL := h.R2.PublicURL(r2Key)
+	r2URL := h.storeOriginalResumePDF(userID, pdfData)
 
 	parsedProfile, err := analyzeResumeWithAI(r.Context(), h.cfg.OpenAIAPIKey, h.cfg.OpenAIBaseURL, resumeText)
 	if err != nil {
 		slog.Warn("resume AI analysis failed, returning raw text", "error", err, "user_id", userID.String())
 		parsedProfile = fallbackProfile(resumeText, r2URL)
-	} else {
+	}
+	if r2URL != "" {
 		parsedProfile["resumePdfUrl"] = r2URL
 	}
+	parsedProfile["resumePlainText"] = resumeText
 
-	profileJSON, err := json.Marshal(parsedProfile)
+	existingRaw, _ := repo.GetProfile(r.Context(), h.Pool, userID)
+	merged := mergeParsedProfileMaps(existingRaw, parsedProfile)
+	if r2URL != "" {
+		merged["resumePdfUrl"] = r2URL
+	}
+	merged["resumePlainText"] = resumeText
+
+	profileJSON, err := json.Marshal(merged)
 	if err != nil {
 		jsonx.Write(w, http.StatusInternalServerError, map[string]string{"message": "could not marshal profile"})
 		return
@@ -104,6 +102,120 @@ func (h *Handlers) PostResumeUpload(w http.ResponseWriter, r *http.Request) {
 		Profile: profileJSON,
 		R2URL:   r2URL,
 	})
+}
+
+// storeOriginalResumePDF uploads the user's source resume PDF when R2 is configured.
+// Onboarding continues without a stored PDF when R2 is missing or upload fails.
+func (h *Handlers) storeOriginalResumePDF(userID uuid.UUID, pdfData []byte) string {
+	if h.R2 == nil || !h.R2.Enabled() {
+		slog.Warn("resume PDF not stored: R2 not configured", "user_id", userID.String())
+		return ""
+	}
+	r2Key := fmt.Sprintf("resumes/%s/original.pdf", userID.String())
+	if err := h.R2.Upload(r2Key, bytes.NewReader(pdfData), "application/pdf"); err != nil {
+		slog.Warn("resume PDF not stored: r2 upload failed", "error", err, "user_id", userID.String())
+		return ""
+	}
+	return h.R2.PublicURL(r2Key)
+}
+
+type resumeParseBody struct {
+	ResumeText string `json:"resumeText"`
+}
+
+type resumeParseResponse struct {
+	Profile json.RawMessage `json:"profile"`
+}
+
+// PostResumeParse extracts profile fields from pasted resume text (no PDF upload).
+func (h *Handlers) PostResumeParse(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID, err := h.Auth.UserIDFromAccess(r)
+	if err != nil {
+		jsonx.Write(w, http.StatusUnauthorized, map[string]string{"error": "not authenticated"})
+		return
+	}
+
+	defer r.Body.Close()
+	b, err := io.ReadAll(io.LimitReader(r.Body, 512<<10))
+	if err != nil {
+		jsonx.Write(w, http.StatusBadRequest, map[string]string{"message": "invalid body"})
+		return
+	}
+
+	var body resumeParseBody
+	if err := json.Unmarshal(b, &body); err != nil {
+		jsonx.Write(w, http.StatusBadRequest, map[string]string{"message": "body must be JSON with resumeText"})
+		return
+	}
+
+	resumeText := strings.TrimSpace(body.ResumeText)
+	if resumeText == "" {
+		jsonx.Write(w, http.StatusBadRequest, map[string]string{"message": "resumeText is required"})
+		return
+	}
+
+	ctx := r.Context()
+	existingRaw, _ := repo.GetProfile(ctx, h.Pool, userID)
+
+	parsedProfile, err := analyzeResumeWithAI(ctx, h.cfg.OpenAIAPIKey, h.cfg.OpenAIBaseURL, resumeText)
+	if err != nil {
+		slog.Warn("resume AI analysis failed, returning raw text", "error", err, "user_id", userID.String())
+		parsedProfile = fallbackProfile(resumeText, "")
+	}
+
+	parsedProfile["resumePlainText"] = resumeText
+	merged := mergeParsedProfileMaps(existingRaw, parsedProfile)
+
+	profileJSON, err := json.Marshal(merged)
+	if err != nil {
+		jsonx.Write(w, http.StatusInternalServerError, map[string]string{"message": "could not marshal profile"})
+		return
+	}
+
+	if err := repo.UpsertProfile(ctx, h.Pool, userID, profileJSON); err != nil {
+		jsonx.Write(w, http.StatusInternalServerError, map[string]string{"message": "could not save profile"})
+		return
+	}
+
+	jsonx.Write(w, http.StatusOK, resumeParseResponse{Profile: profileJSON})
+}
+
+func mergeParsedProfileMaps(existing json.RawMessage, parsed map[string]any) map[string]any {
+	out := map[string]any{}
+	if len(existing) > 0 {
+		_ = json.Unmarshal(existing, &out)
+	}
+	for k, v := range parsed {
+		if isEmptyMergeValue(v) {
+			continue
+		}
+		out[k] = v
+	}
+	return out
+}
+
+func isEmptyMergeValue(v any) bool {
+	switch t := v.(type) {
+	case nil:
+		return true
+	case string:
+		return strings.TrimSpace(t) == ""
+	case []any:
+		return len(t) == 0
+	case []string:
+		return len(t) == 0
+	case bool:
+		return false
+	case float64, int, int64:
+		return false
+	default:
+		return false
+	}
 }
 
 func headExt(filename string) string {
@@ -158,9 +270,12 @@ func analyzeResumeWithAI(ctx context.Context, apiKey, baseURL, resumeText string
 
 Return a JSON object with these fields (use empty string for missing data, empty array for missing arrays):
 - fullName: string
+- phoneNumber: string
 - preferredName: string
 - headline: string (one-line professional summary)
+- currentCompany: string (most recent employer)
 - cityOrDetail: string
+- stateOrProvince: string (US state code e.g. CA, NY or Canadian province code e.g. ON, BC — empty if not US/CA)
 - region: string (use slug: us, ca, eu_uk, latam, apac, mea, remote_first, other)
 - linkedInUrl: string
 - githubUrl: string
@@ -175,6 +290,14 @@ Return a JSON object with these fields (use empty string for missing data, empty
 - selectedToolSlugs: array of strings (use slugs: aws, gcp, azure, k8s, docker, terraform, postgres, mysql, mongo, redis, kafka, spark, react, node, graphql, datadog, github_actions, other_tools)
 - highestEducation: string (slug: high_school, associate, bachelors, masters, doctorate, bootcamp, self_taught, other)
 - educationDetails: string
+- workEntries: array of employment objects — include EVERY role from the Experience section. For each role:
+  - company: string
+  - role: string (job title)
+  - startDate: string (e.g. "August 2024")
+  - endDate: string (e.g. "May 2024" or empty if current)
+  - isCurrent: boolean
+  - employmentType: one of full_time, part_time, internship, coop, freelance (use full_time for regular employee roles)
+  - summaryBullets: string — REQUIRED when the resume lists bullets under that role. Copy each accomplishment/responsibility bullet verbatim, one per line, prefixed with "• ". Do NOT omit bullets that appear in the source text.
 - projects: array of objects with fields: kind (slug: side, open_source, bootcamp, work_sample, freelance, other), title, summary, primaryTechSlug (slug: typescript, python, go, rust, java, csharp, ruby, php, swift_kotlin, cpp, data_sql, mixed, other), impactMetrics, link
 - resumePlainText: string (the full extracted resume text)
 
@@ -234,6 +357,7 @@ Be thorough. Extract everything you can. If a field cannot be determined from th
 		return nil, fmt.Errorf("parse AI output: %w", err)
 	}
 
+	normalizeParsedWorkEntries(result)
 	return result, nil
 }
 
@@ -242,9 +366,12 @@ func fallbackProfile(resumeText, r2URL string) map[string]any {
 		"resumePlainText":       resumeText,
 		"resumeAttachmentName":  nil,
 		"fullName":              "",
+		"phoneNumber":           "",
 		"preferredName":         "",
 		"headline":              "",
+		"currentCompany":        "",
 		"cityOrDetail":          "",
+		"stateOrProvince":       "",
 		"region":                "",
 		"linkedInUrl":           "",
 		"githubUrl":             "",
@@ -259,6 +386,7 @@ func fallbackProfile(resumeText, r2URL string) map[string]any {
 		"selectedToolSlugs":     []string{},
 		"highestEducation":      "",
 		"educationDetails":      "",
+		"workEntries":           []any{},
 		"projects":              []any{},
 		"storyHardestTechnicalChallenge":    "",
 		"storyDisagreementOrConflict":       "",
@@ -284,6 +412,9 @@ func fallbackProfile(resumeText, r2URL string) map[string]any {
 		"openToEquity":          false,
 		"openToContract":        false,
 		"openToRelocate":        false,
+		"authorizedCountries":   []string{},
+		"startAvailability":     "",
+		"featuredProjectId":     "",
 		"visaStatus":            "",
 		"needsVisaSponsorship":  false,
 		"workAuthOtherNote":     "",
