@@ -5,6 +5,7 @@ export const authMeQueryKey = ['auth', 'me'] as const
 export type AuthUser = {
   id: string
   email: string
+  isAdmin?: boolean
 }
 
 /** Dev-only mock session when the API is unreachable (Vite only). */

@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   Sun,
   Moon,
+  Shield,
 } from 'lucide-react'
 import { authMeQueryKey, fetchAuthMe, logoutRequest } from '@/lib/auth'
 import { getProfileFirstName } from '@/lib/displayName'
@@ -105,6 +106,16 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
             </Link>
           )
         })}
+        {user?.isAdmin ? (
+          <Link
+            to="/admin"
+            onClick={onNavigate}
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-content-secondary transition-colors hover:bg-surface-tertiary hover:text-foreground [&.active]:bg-primary/10 [&.active]:text-primary"
+          >
+            <Shield className="size-4 shrink-0" />
+            Admin
+          </Link>
+        ) : null}
       </nav>
 
       <Separator />

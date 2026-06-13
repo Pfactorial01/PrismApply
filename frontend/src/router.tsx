@@ -14,6 +14,15 @@ import { ProfilePage } from './pages/ProfilePage'
 import { SettingsPage } from './pages/SettingsPage'
 import { LoginPage } from './pages/LoginPage'
 import { SignupPage } from './pages/SignupPage'
+import { AdminLayout } from './layouts/AdminLayout'
+import { AdminDashboardPage } from './pages/admin/AdminDashboardPage'
+import { AdminUsersPage } from './pages/admin/AdminUsersPage'
+import { AdminUserDetailPage } from './pages/admin/AdminUserDetailPage'
+import { AdminMatchesPage } from './pages/admin/AdminMatchesPage'
+import { AdminMatchDetailPage } from './pages/admin/AdminMatchDetailPage'
+import { AdminApplicationsPage } from './pages/admin/AdminApplicationsPage'
+import { AdminApplicationDetailPage } from './pages/admin/AdminApplicationDetailPage'
+import { AdminJobRunsPage } from './pages/admin/AdminJobRunsPage'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { authMeQueryKey, fetchAuthMe } from './lib/auth'
 import { applicantProfileQueryKeyFor, fetchApplicantProfile } from './lib/profileApi'
@@ -117,6 +126,74 @@ const settingsRoute = createRoute({
   component: SettingsPage,
 })
 
+async function ensureAdminUser(queryClient: QueryClient) {
+  const user = await ensureSessionUser(queryClient)
+  if (!user) {
+    throw redirect({ to: '/login' })
+  }
+  if (!user.isAdmin) {
+    throw redirect({ to: '/' })
+  }
+  return user
+}
+
+const adminLayoutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: '_admin',
+  beforeLoad: async ({ context }) => {
+    await ensureAdminUser(context.queryClient)
+  },
+  component: AdminLayout,
+})
+
+const adminIndexRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: '/admin',
+  component: AdminDashboardPage,
+})
+
+const adminUsersRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: '/admin/users',
+  component: AdminUsersPage,
+})
+
+const adminUserDetailRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: '/admin/users/$id',
+  component: AdminUserDetailPage,
+})
+
+const adminMatchesRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: '/admin/matches',
+  component: AdminMatchesPage,
+})
+
+const adminMatchDetailRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: '/admin/matches/$id',
+  component: AdminMatchDetailPage,
+})
+
+const adminApplicationsRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: '/admin/applications',
+  component: AdminApplicationsPage,
+})
+
+const adminApplicationDetailRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: '/admin/applications/$id',
+  component: AdminApplicationDetailPage,
+})
+
+const adminJobRunsRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: '/admin/job-runs',
+  component: AdminJobRunsPage,
+})
+
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
@@ -144,6 +221,16 @@ const routeTree = rootRoute.addChildren([
     applicationDetailRoute,
     profileRoute,
     settingsRoute,
+  ]),
+  adminLayoutRoute.addChildren([
+    adminIndexRoute,
+    adminUsersRoute,
+    adminUserDetailRoute,
+    adminMatchesRoute,
+    adminMatchDetailRoute,
+    adminApplicationsRoute,
+    adminApplicationDetailRoute,
+    adminJobRunsRoute,
   ]),
   loginRoute,
   signupRoute,

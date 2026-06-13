@@ -112,6 +112,8 @@ func FromEnv() Config {
 		scrapeEnv = "LOCAL"
 	}
 
+	adminEmails := parseAdminEmails(os.Getenv("ADMIN_EMAILS"))
+
 	return Config{
 		Addr:              ":" + strconv.Itoa(port),
 		DatabaseURL:       strings.TrimSpace(os.Getenv("DATABASE_URL")),
@@ -149,6 +151,7 @@ func FromEnv() Config {
 		BrowserbaseAPIKey:          browserbaseKey,
 		BrowserbaseProjectID:       browserbaseProject,
 		ScrapeEnv:                  scrapeEnv,
+		AdminEmails:                adminEmails,
 	}
 }
 
@@ -189,6 +192,23 @@ type Config struct {
 	BrowserbaseAPIKey        string
 	BrowserbaseProjectID     string
 	ScrapeEnv                string
+	AdminEmails              map[string]struct{}
+}
+
+func parseAdminEmails(raw string) map[string]struct{} {
+	out := make(map[string]struct{})
+	for _, part := range strings.Split(raw, ",") {
+		email := strings.ToLower(strings.TrimSpace(part))
+		if email != "" {
+			out[email] = struct{}{}
+		}
+	}
+	return out
+}
+
+func (c Config) IsAdminEmail(email string) bool {
+	_, ok := c.AdminEmails[strings.ToLower(strings.TrimSpace(email))]
+	return ok
 }
 
 func firstNonEmpty(a, b string) string {

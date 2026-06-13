@@ -71,7 +71,7 @@ func (h *Handlers) PostSignup(w http.ResponseWriter, r *http.Request) {
 		jsonx.Write(w, http.StatusInternalServerError, map[string]string{"message": "could not hash password"})
 		return
 	}
-	id, err := repo.CreateUser(ctx, h.Pool, body.Email, hash)
+	id, err := repo.CreateUser(ctx, h.Pool, body.Email, hash, h.cfg.IsAdminEmail(body.Email))
 	if errors.Is(err, repo.ErrEmailExists) {
 		jsonx.Write(w, http.StatusConflict, map[string]string{"message": "email already registered"})
 		return
@@ -85,7 +85,7 @@ func (h *Handlers) PostSignup(w http.ResponseWriter, r *http.Request) {
 		jsonx.Write(w, http.StatusInternalServerError, map[string]string{"message": "could not start session"})
 		return
 	}
-	jsonx.Write(w, http.StatusCreated, map[string]string{"id": id.String(), "email": email})
+	jsonx.Write(w, http.StatusCreated, authMeResponse{ID: id.String(), Email: email, IsAdmin: h.cfg.IsAdminEmail(email)})
 }
 
 func (h *Handlers) PostLogin(w http.ResponseWriter, r *http.Request) {
@@ -117,11 +117,18 @@ func (h *Handlers) PostLogin(w http.ResponseWriter, r *http.Request) {
 		jsonx.Write(w, http.StatusUnauthorized, map[string]string{"message": "invalid credentials"})
 		return
 	}
+	if h.cfg.IsAdminEmail(u.Email) {
+		if err := repo.EnsureAdminByEmail(ctx, h.Pool, u.Email); err != nil {
+			slog.Warn("admin sync failed on login", "error", err, "email", u.Email)
+		} else {
+			u.IsAdmin = true
+		}
+	}
 	if err := h.Auth.IssueAuthCookies(ctx, w, u.ID, u.Email); err != nil {
 		jsonx.Write(w, http.StatusInternalServerError, map[string]string{"message": "could not start session"})
 		return
 	}
-	jsonx.Write(w, http.StatusOK, map[string]string{"id": u.ID.String(), "email": u.Email})
+	jsonx.Write(w, http.StatusOK, authMeResponse{ID: u.ID.String(), Email: u.Email, IsAdmin: u.IsAdmin})
 }
 
 func (h *Handlers) PostLogout(w http.ResponseWriter, r *http.Request) {
@@ -175,7 +182,14 @@ func (h *Handlers) GetAuthMe(w http.ResponseWriter, r *http.Request) {
 		jsonx.Write(w, http.StatusInternalServerError, map[string]string{"message": "lookup failed"})
 		return
 	}
-	jsonx.Write(w, http.StatusOK, map[string]string{"id": u.ID.String(), "email": u.Email})
+	if h.cfg.IsAdminEmail(u.Email) && !u.IsAdmin {
+		if err := repo.EnsureAdminByEmail(ctx, h.Pool, u.Email); err != nil {
+			slog.Warn("admin sync failed on /me", "error", err, "email", u.Email)
+		} else {
+			u.IsAdmin = true
+		}
+	}
+	jsonx.Write(w, http.StatusOK, authMeResponse{ID: u.ID.String(), Email: u.Email, IsAdmin: u.IsAdmin})
 }
 
 func (h *Handlers) GetProfile(w http.ResponseWriter, r *http.Request) {

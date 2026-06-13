@@ -87,7 +87,7 @@ func upsertTestUser(ctx context.Context, cfg config.Config, pool *pgxpool.Pool, 
 		id = u.ID
 		fmt.Printf("\n[%s] existing user %s\n", email, id)
 	case errors.Is(err, repo.ErrNotFound):
-		id, err = repo.CreateUser(ctx, pool, email, passwordHash)
+		id, err = repo.CreateUser(ctx, pool, email, passwordHash, false)
 		if err != nil {
 			return err
 		}

@@ -36,6 +36,15 @@ func NewRouter(h *handlers.Handlers) http.Handler {
 	mux.HandleFunc("GET /api/settings", h.GetSettings)
 	mux.HandleFunc("PATCH /api/settings", h.PatchSettings)
 
+	mux.HandleFunc("GET /api/admin/stats", h.GetAdminStats)
+	mux.HandleFunc("GET /api/admin/users", h.GetAdminUsers)
+	mux.HandleFunc("GET /api/admin/users/{id}", h.GetAdminUser)
+	mux.HandleFunc("GET /api/admin/matches", h.GetAdminMatches)
+	mux.HandleFunc("GET /api/admin/matches/{id}", h.GetAdminMatch)
+	mux.HandleFunc("GET /api/admin/applications", h.GetAdminApplications)
+	mux.HandleFunc("GET /api/admin/applications/{id}", h.GetAdminApplication)
+	mux.HandleFunc("GET /api/admin/job-runs", h.GetAdminJobRuns)
+
 	return requestIDMiddleware(loggingMiddleware(mux))
 }
 
